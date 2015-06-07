@@ -8,7 +8,8 @@
 #include <string>
 
 
-#define IMAGE_SIZE 6
+#define IMAGE_SIZE 21
+#define CHESS_SIZE 21
 #define CHESS_SIZE_Y 21
 #define CHESS_SIZE_X 21
 #define CHESS_ROW 9
@@ -16,11 +17,6 @@
 
 int main( int argc, char* argv[])
 {
-
-
-	cv::Size patternsize(CHESS_ROW, CHESS_COLUM);
-	cv::vector<cv::Point2f> corners;	
-
 
 
 	//checker pattern picture
@@ -80,7 +76,7 @@ int main( int argc, char* argv[])
 	for(int i=0;i<IMAGE_SIZE;i++){
 		for(int j=0;j<checker_pattern_size.area();j++){
 
-			world_points[i].push_back(cv::Point3f( static_cast<float>( j%checker_pattern_size.width*10),static_cast<float>(j /checker_pattern_size.width * 10), 0.0) ) ;
+			world_points[i].push_back(cv::Point3f( static_cast<float>( (j%checker_pattern_size.width) *CHESS_SIZE),static_cast<float>( (j /checker_pattern_size.width) *CHESS_SIZE), 0.0) ) ;
 		}
 	}
 
@@ -99,6 +95,14 @@ int main( int argc, char* argv[])
 	std::cout << "distort parameter : "<< std::endl;
 	std::cout << dist_coeffs << std::endl;
 
+	std::cout << "outside parameter : " << std::endl <<  translation_vector[0]<< std::endl;
+	std::cout << rotation_vector[0]<< std::endl;
+	std::cout << "outside parameter : " << std::endl <<  translation_vector[1]<< std::endl;
+	std::cout << rotation_vector[1]<< std::endl;
+	std::cout << "outside parameter : " << std::endl <<  translation_vector[2]<< std::endl;
+	std::cout << rotation_vector[2]<< std::endl;
+
+	
 	cv::Mat undistorted;
 	
 	//reject distort
