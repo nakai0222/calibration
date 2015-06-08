@@ -10,8 +10,6 @@
 
 #define IMAGE_SIZE 21
 #define CHESS_SIZE 21
-#define CHESS_SIZE_Y 21
-#define CHESS_SIZE_X 21
 #define CHESS_ROW 9
 #define CHESS_COLUM 6
 
