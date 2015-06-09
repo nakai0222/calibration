@@ -181,15 +181,11 @@ int main( int argc, char* argv[])
 		translations.push_back(tmp_translation);	
 	}
 
-	
 
-	/*	
-	Vec3b intensity = img.at<Vec3b>(x,y);
-	unchar blue = intensity.val[0];
-	unchar green = intensity.val[1];
-	unchar red = intensity.val[2];
-	*/
-	/*	
+	std::cout << "rotation : " <<  rotations[0]<< std::endl;
+	std::cout << "translation : " <<  translations[0]<< std::endl;
+
+		
 	//calculate lazer points
 	cv::vector<cv::Point2f> lazer_points(IMAGE_SIZE);
    	int thr = 85;
@@ -222,13 +218,13 @@ int main( int argc, char* argv[])
 	}	
 
 
-	
+		
 	cv::vector <cv::Point3f> camera_points;
 
 	for(int i=0;i<IMAGE_SIZE;i++){
 		//translate points at camera axis 
 		camera_points.push_back(cv::Point3f(1,1,1));	
-		//camera_points.push_back( I_mat.inv()*static_cast<cv::Mat>()lazer_points[i]);	
+		//camera_points.push_back(I_Mat.inv()*lazer_points[i]);	
 	}
 
 	Vertex3D plane_points[IMAGE_SIZE]; 	
@@ -251,7 +247,7 @@ int main( int argc, char* argv[])
 	std::cout << "b : "<< plane.b<<std::endl;
 	std::cout << "c : "<< plane.c<<std::endl;
 	std::cout << "d : "<< plane.d<<std::endl;
-	*/	
+		
 	
 	return 0;
 }
