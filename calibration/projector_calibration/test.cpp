@@ -18,6 +18,9 @@
 #define CHESS_ROW 9
 #define CHESS_COLUM 6
 
+#define XI_W 640
+#define XI_H 480
+
 
 //平面の定義
 class Plane {	//ax+by+cz+d=0
@@ -89,7 +92,9 @@ int main( int argc, char* argv[])
 	//load the raw and lazer image 
 
 	cv::vector<cv::Mat> checker_image;
+	//cv::vector<cv::Mat> checker_image(XI_H,XI_W,CV_8UC1);
 	cv::vector<cv::Mat> checker_image_lazer;
+	//cv::vector<cv::Mat> checker_image_lazer(XI_H,XI_W,CV_8UC1);
 
 	for(int i=0;i<IMAGE_SIZE;i++)
 	{
@@ -126,11 +131,16 @@ int main( int argc, char* argv[])
 
 	fs["intrinsicMat"] >> I_Mat;
 	fs["distCoeffs"] >> D_Mat;
+
+
+	std::cout << "inner parameter: " << I_Mat << std::endl;
+	std::cout << "distCoeffs: " << D_Mat << std::endl;
+
 		 
 	cv::vector<cv::Mat> rotations;
 	cv::vector<cv::Mat> translations;
 
-
+		
 	//find checker patter
 	for(int i=0;i<IMAGE_SIZE;i++)
 	{
@@ -153,6 +163,7 @@ int main( int argc, char* argv[])
 		}
 	}
 
+		
 	//registrate world points
 	for(int i=0;i<IMAGE_SIZE;i++){
 		for(int j=0;j<checker_pattern_size.area();j++){
@@ -163,34 +174,40 @@ int main( int argc, char* argv[])
 
 	//calculate outside parameter
 	for(int i=0;i<IMAGE_SIZE;i++){
-		cv::solvePnP(world_points[i],image_points[i],I_Mat,D_Mat,rotations[i],translations[i]);
+		cv::Mat tmp_rotation;
+		cv::Mat tmp_translation;
+		cv::solvePnP(world_points[i],image_points[i],I_Mat,D_Mat,tmp_rotation,tmp_translation);
+		rotations.push_back(tmp_rotation);
+		translations.push_back(tmp_translation);	
 	}
 
-	/*
+	
+
+	/*	
 	Vec3b intensity = img.at<Vec3b>(x,y);
 	unchar blue = intensity.val[0];
 	unchar green = intensity.val[1];
 	unchar red = intensity.val[2];
 	*/
-
+	/*	
 	//calculate lazer points
 	cv::vector<cv::Point2f> lazer_points(IMAGE_SIZE);
-   	int thr = 200;
+   	int thr = 85;
 	int BGR = 1;
 	 cv::Mat split_imgl[3];
 	//split color image
 	for(int i=0;i<IMAGE_SIZE;i++){
 	
 		cv::split(checker_image_lazer[i],split_imgl);
-		cv::threshold(split_imgl[BGR],checker_image_lazer[i],thr,0,THRESH_TOZERO);
+		cv::threshold(split_imgl[BGR],checker_image_lazer[i],thr,0,cv::THRESH_TOZERO);
 
 		int most_brightness_number[2];
 		double most_brightness=0;
 
-		for(int j=0;j<checker_image_lazer[i].cols;j++){
-			for(int k=0;k<checker_image_lazer[i].rows;k++){
+		for(int j=0;j<checker_image_lazer[i].rows;j++){
+			for(int k=0;k<checker_image_lazer[i].cols;k++){
 
-				double tmp_brightness = checker_image_lazer[i].at(j,k);
+				double tmp_brightness =checker_image_lazer[i].at<uchar>(j,k);
 
 				if(tmp_brightness > most_brightness ){
 					most_brightness_number[0] = j;
@@ -205,30 +222,36 @@ int main( int argc, char* argv[])
 	}	
 
 
-
+	
 	cv::vector <cv::Point3f> camera_points;
 
 	for(int i=0;i<IMAGE_SIZE;i++){
 		//translate points at camera axis 
-		camera_points.push_back( I_mat.inv()*static_cast<cv::Mat>()lazer_points[i]);	
+		camera_points.push_back(cv::Point3f(1,1,1));	
+		//camera_points.push_back( I_mat.inv()*static_cast<cv::Mat>()lazer_points[i]);	
 	}
 
-	Vertex3D plane_points[3]; 	
-	Vertex3D point_a;
-	Vertex3D point_b;
-	Vertex3D point_c;
+	Vertex3D plane_points[IMAGE_SIZE]; 	
+
+	for(int i=0;i<IMAGE_SIZE;i++){
+
+	plane_points[i].x = camera_points[i].x;
+	plane_points[i].y = camera_points[i].y;
+	plane_points[i].z = camera_points[i].z;
 	
+
+	}
 	
-	
+		
 	//calculate ax+by+cz+d=0 
 	Plane plane;
-	plane.CreatePlaneFromPolygon(point_a,point_b,point_c);
-	std::cout << "complete projector plane "<< std::endla;
+	CreatePlaneFromPolygon(plane_points[0],plane_points[1],plane_points[2]);
+	std::cout << "complete projector plane "<< std::endl;
 	std::cout << "a : "<< plane.a << std::endl;
 	std::cout << "b : "<< plane.b<<std::endl;
 	std::cout << "c : "<< plane.c<<std::endl;
 	std::cout << "d : "<< plane.d<<std::endl;
-	
+	*/	
 	
 	return 0;
 }
