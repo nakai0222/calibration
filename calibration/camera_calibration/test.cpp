@@ -100,6 +100,10 @@ int main( int argc, char* argv[])
 	std::cout << "outside parameter : " << std::endl <<  translation_vector[2]<< std::endl;
 	std::cout << rotation_vector[2]<< std::endl;
 
+
+	cv::FileStorage fs("camera.xml",cv::FileStorage::WRITE);
+	fs << "intrinsicMat" << camera_matrix; 
+	fs << "distCoeffs" << dist_coeffs;
 	
 	cv::Mat undistorted;
 	
