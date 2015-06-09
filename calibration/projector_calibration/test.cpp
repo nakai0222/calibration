@@ -122,6 +122,7 @@ int main( int argc, char* argv[])
 	cv::Mat I_Mat ; 
 	cv::Mat D_Mat ;
 	cv::FileStorage fs("camera.xml",CV_STORAGE_READ);
+	//cv::FileStorage fs("camera.xml",cv::FileStorage::READ);
 
 	fs["intrinsicMat"] >> I_Mat;
 	fs["distCoeffs"] >> D_Mat;
@@ -171,9 +172,6 @@ int main( int argc, char* argv[])
 	unchar green = intensity.val[1];
 	unchar red = intensity.val[2];
 	*/
-	
-	
-
 
 	//calculate lazer points
 	cv::vector<cv::Point2f> lazer_points(IMAGE_SIZE);
@@ -206,6 +204,8 @@ int main( int argc, char* argv[])
 		lazer_points.push_back(light_point);	
 	}	
 
+
+
 	cv::vector <cv::Point3f> camera_points;
 
 	for(int i=0;i<IMAGE_SIZE;i++){
@@ -214,10 +214,15 @@ int main( int argc, char* argv[])
 	}
 
 	Vertex3D plane_points[3]; 	
-
+	Vertex3D point_a;
+	Vertex3D point_b;
+	Vertex3D point_c;
+	
+	
+	
 	//calculate ax+by+cz+d=0 
 	Plane plane;
-	plane.CreatePlaneFromPolygon(plane_points[0],plane_points[1],plane_points[2]);
+	plane.CreatePlaneFromPolygon(point_a,point_b,point_c);
 	std::cout << "complete projector plane "<< std::endla;
 	std::cout << "a : "<< plane.a << std::endl;
 	std::cout << "b : "<< plane.b<<std::endl;
