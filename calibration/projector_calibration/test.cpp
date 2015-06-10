@@ -195,29 +195,34 @@ int main( int argc, char* argv[])
 	//calculate lazer points
 	cv::vector<cv::Point2f> lazer_points(IMAGE_SIZE);
 	int thr = 85;
-	int BGR = 1;
+	int BGR = 0;
 	cv::Mat split_imgl[3];
 
 	//split color image
 	for(int i=0;i<IMAGE_SIZE;i++){
 		
-		cv::Mat gimg(XI_H, XI_W, CV_8UC1);
+		cv::Mat gimg;
 
 		cv::split(checker_image_lazer[i],split_imgl);
-		cv::threshold(split_imgl[BGR],gimg,thr,0,cv::THRESH_TOZERO);
+		//cv::threshold(checker_image_lazer[i],gimg,thr,0,cv::THRESH_TOZERO);
 		//cv::threshold(split_imgl[BGR],checker_image_lazer[i],thr,0,cv::THRESH_TOZERO);
 		cv::imshow("R",checker_image_lazer[i]);
+	
+		cv::imshow("r",split_imgl[BGR]);
+
 		cv::waitKey(0);
 
-		//cv::waitKey(0);
+		//checker_image_lazer[i] = split_imgl[BGR];	
+		gimg = split_imgl[BGR];	
+		
 		int most_brightness_number[2];
 		int most_brightness=0;
 
 		for(int j=0;j<checker_image_lazer[i].rows;j++){
 			for(int k=0;k<checker_image_lazer[i].cols;k++){
 
-				//unsigned char tmp_brightness = gimg.at<uchar>(j,k);
-				unsigned char tmp_brightness = checker_image_lazer[i].at<uchar>(j,k);
+				unsigned char tmp_brightness = gimg.at<uchar>(j,k);
+				//unsigned char tmp_brightness = checker_image_lazer[i].at<uchar>(j,k);
 
 				if((int)tmp_brightness >= most_brightness ){
 					most_brightness_number[0] = j;
@@ -244,16 +249,15 @@ int main( int argc, char* argv[])
 	for(int i=0;i<IMAGE_SIZE;i++){
 		//translate points at camera axis 
 	
-		
-		cv::Mat r3= (cv::Mat)(rotation_mat.row(2));
+		/*		
+		cv::Mat r3= (cv::Mat)(rotation_mat.col(2));
 
-		//cv::Mat r3_inv = ((cv::Mat)(rotation_mat.row(2))).inv();
-
+	
 		std::cout << "r3" << r3 << std::endl;
 
 
 		
-		cv::Mat kt = (r3*translations[i]).inv() * r3;	
+		cv::Mat kt = (r3.t()*translations[i]).inv() * r3.t();	
 
 		std::cout << "kt" << kt << std::endl;
 	
@@ -262,22 +266,64 @@ int main( int argc, char* argv[])
 
 		std::cout << "diag" << diag << std::endl;
 
-		std::cout << "lazer_x : " << lazer_points[i].x << std::endl;
-		std::cout << "lazer_y : " << lazer_points[i].y << std::endl;
+		//std::cout << "lazer_x : " << lazer_points[i].x << std::endl;
+		//std::cout << "lazer_y : " << lazer_points[i].y << std::endl;
 		
 		cv::Mat lazer_point = (cv::Mat_<double>(3,1) << lazer_points[i].x , lazer_points[i].y,1);
-
-
 		std::cout << "lazer_point" << lazer_point<< std::endl;
-
-			
+				
 		cv::Mat camera_point;
-		camera_point = diag * I_Mat.inv() * lazer_point;
+		camera_point = kt * I_Mat.inv() * lazer_point; 
 
 
 		std::cout << "camera_point" << camera_point << std::endl;
 
-		camera_points.push_back( cv::Point3f(camera_point.at<double>(0,0),camera_point.at<double>(0,1),camera_point.at<double>(0,2) ));	
+		camera_points.push_back( cv::Point3f(camera_point.at<double>(0,0),camera_point.at<double>(1,0),camera_point.at<double>(2,0) ));	
+		*/	
+
+
+		
+
+
+		cv::Mat r0 = rotation_mat.col(0);	
+		cv::Mat r1 = rotation_mat.col(1);	
+		cv::Mat t = translations[i]; 
+
+
+
+		cv::Mat q = (cv::Mat_<double>(3,3)<<  r0.at<double>(0,0),  r1.at<double>(0,0),  t.at<double>(0,0),  r0.at<double>(1,0),  r1.at<double>(1,0),  t.at<double>(1,0), r0.at<double>(2,0),  r1.at<double>(2,0),  t.at<double>(2,0)) ;
+
+
+
+
+		cv::Mat k = (cv::Mat_<double>(4,3) << q.at<double>(0,0)  , q.at<double>(0,1)  , q.at<double>(0,2)  , q.at<double>(1,0)  , q.at<double>(1,1)  , q.at<double>(1,2)  , q.at<double>(2,0)  , q.at<double>(2,1)  , q.at<double>(2,2)  , 0 , 0, 1  );
+
+		
+	
+
+	
+		std::cout << "q" << q << std::endl;
+		std::cout << "k" << k << std::endl;
+
+		
+		cv::Mat lazer_point = (cv::Mat_<double>(3,1) << lazer_points[i].x , lazer_points[i].y,1);
+		std::cout << "lazer_point" << lazer_point<< std::endl;
+		
+
+		
+			
+		cv::Mat camera_point;
+		camera_point = k*q.inv()*I_Mat.inv()*lazer_point; 
+
+
+		std::cout << "camera_point" << camera_point << std::endl;
+
+
+		double div = camera_point.at<double>(3,0);
+		std::cout << "div : " << div << std::endl;
+		
+		camera_points.push_back( cv::Point3f(camera_point.at<double>(0,0)/div,camera_point.at<double>(1,0)/div,camera_point.at<double>(2,0)/div ));	
+		//camera_points.push_back( cv::Point3f(camera_point.at<double>(0,0),camera_point.at<double>(1,0),camera_point.at<double>(2,0) ));	
 			
 
 		//camera_points.push_back(cv::Point3f(1,1,1));	
@@ -291,7 +337,7 @@ int main( int argc, char* argv[])
 		plane_points[i].y = camera_points[i].y;
 		std::cout << "y" <<  camera_points[i].y << std::endl;
 		plane_points[i].z = camera_points[i].z;
-		std::cout << "z" << camera_points[i].z << std::endl;
+		std::cout << "z" << camera_points[i].z << std::endl << std::endl;
 	}
 
 
@@ -302,7 +348,13 @@ int main( int argc, char* argv[])
 	std::cout << "a : "<< plane.a << std::endl;
 	std::cout << "b : "<< plane.b<<std::endl;
 	std::cout << "c : "<< plane.c<<std::endl;
-	std::cout << "d : "<< plane.d<<std::endl;
+	std::cout << "d : "<< plane.d<<std::endl<<std::endl;
+
+
+
+	std::cout << "c/a : "<< plane.c/plane.a<<std::endl;
+	std::cout << "d/a : "<< plane.d/plane.a<<std::endl;
+	std::cout << "b/a : "<< plane.b/plane.a<<std::endl;
 
 
 	return 0;
