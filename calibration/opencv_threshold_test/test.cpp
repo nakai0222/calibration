@@ -1,3 +1,5 @@
+
+
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
@@ -7,11 +9,8 @@
 #include <iostream>
 #include <string>
 
-#define XI_W 640
-#define XI_H 480
-
-using namespace cv;
-using namespace std;
+#define XI_W 648
+#define XI_H 488
 
 
 
@@ -20,9 +19,10 @@ int main(){
 
 	int thr = 85;
 	int BGR = 1;
-	cv::Mat cimgl(XI_H,XI_W,CV_8UC1);
+	cv::Mat cimgl;
+	//cv::Mat cimgl(XI_H,XI_W,CV_8UC1);
 	cv::Mat gimg(XI_H, XI_W, CV_8UC1);
-	cv::Mat gimgl(XI_H, XI_W, CV_8UC1);
+	cv::Mat gimgl;
 	cv::Mat gimgl2(XI_H, XI_W, CV_8UC1);
 	cv::Mat gimgl3(XI_H, XI_W, CV_8UC1);
 
@@ -40,11 +40,17 @@ int main(){
 
 	cv::split(cimgl,split_imgl);
 
-	cv::threshold(split_imgl[BGR],gimgl,thr,0,THRESH_TOZERO);
+	
+	//cv::threshold(split_imgl[BGR+1],gimgl,thr,0,THRESH_TOZERO);
 
-	namedWindow("R");
-	imshow("R",gimgl);
-
+	//gimgl = cimgl.clone(); 
+	gimgl = split_imgl[BGR];
+	
+	cv::namedWindow("R");
+	cv::imshow("R",gimgl);
+	cv::imshow("R2",cimgl);
+	cv::imshow("R4",split_imgl[0]);
+	
 	int max = 0;
 	int max_num =0;
 	int max_num_i =0;
@@ -56,7 +62,7 @@ int main(){
 	for(int i=0;i<cimgl.rows;i++){
 		for(int j=0;j<cimgl.cols;j++){
 			//unsigned char pixel = gimgl.at<uchar>(i,j);
-			unsigned char pixel = gimgl.at<uchar>(i,j);
+			int pixel = gimgl.at<uchar>(i,j);
 
 			if( (int)pixel >=  max ){
 				max = pixel;
@@ -72,6 +78,7 @@ int main(){
 		}
 	}
 
+
 	std::cout << count << std::endl;
 
 	for(int i=0;i<gimgl.rows;i++){
@@ -86,7 +93,7 @@ int main(){
 
 		}
 	}
-	namedWindow("R3");
+	cv::namedWindow("R3");
 	imshow("R3",gimgl);
 
 
@@ -95,10 +102,7 @@ int main(){
 		std::cout << max_num << std::endl;
 		std::cout << max_num/gimgl.cols << std::endl;
 		std::cout << max_num%gimgl.cols << std::endl;
-
 		divide(split_imgl[(BGR+1)%3],split_imgl[BGR],gimgl2,10);
-
-
 		threshold(gimgl2,gimgl2,8,255,THRESH_BINARY_INV);
 		namedWindow("B/R");
 		imshow("B/R",gimgl2);
@@ -106,14 +110,10 @@ int main(){
 		threshold(gimgl3,gimgl3,9,255,THRESH_BINARY_INV);
 		namedWindow("G/R");
 		imshow("G/R",gimgl3);
-
-
 		gimgl=gimgl.mul(gimgl2,1.0/255);
 		gimgl=gimgl.mul(gimgl3,1.0/255);
-
-
 		imshow("R2",gimgl);
 	 */
-	waitKey(0);
+	cv::waitKey(0);
 
 }
