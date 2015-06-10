@@ -109,10 +109,6 @@ int main( int argc, char* argv[])
 
 	}
 
-	std::cout << checker_image_lazer[0].rows << std::endl;
-	std::cout << checker_image_lazer[0].cols<< std::endl;
-
-
 	//number of intersection point 
 	cv::Size checker_pattern_size(CHESS_ROW,CHESS_COLUM);
 	//image points
@@ -121,7 +117,6 @@ int main( int argc, char* argv[])
 	cv::vector< cv::vector<cv::Point3f> > world_points(IMAGE_SIZE);
 	//world coordinate pattern 
 	cv::TermCriteria criteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS,20,0.001);
-
 
 
 	/*read inside and outside parameter at camera*/
@@ -247,44 +242,9 @@ int main( int argc, char* argv[])
 	cv::vector <cv::Point3f> camera_points;
 
 	for(int i=0;i<IMAGE_SIZE;i++){
+
+
 		//translate points at camera axis 
-	
-		/*		
-		cv::Mat r3= (cv::Mat)(rotation_mat.col(2));
-
-	
-		std::cout << "r3" << r3 << std::endl;
-
-
-		
-		cv::Mat kt = (r3.t()*translations[i]).inv() * r3.t();	
-
-		std::cout << "kt" << kt << std::endl;
-	
-		cv::Mat diag = (cv::Mat_<double>(4,3) << 1,0,0,0,1,0,0,0,1,kt.at<double>(0,0),kt.at<double>(0,1),kt.at<double>(0,2));
-
-
-		std::cout << "diag" << diag << std::endl;
-
-		//std::cout << "lazer_x : " << lazer_points[i].x << std::endl;
-		//std::cout << "lazer_y : " << lazer_points[i].y << std::endl;
-		
-		cv::Mat lazer_point = (cv::Mat_<double>(3,1) << lazer_points[i].x , lazer_points[i].y,1);
-		std::cout << "lazer_point" << lazer_point<< std::endl;
-				
-		cv::Mat camera_point;
-		camera_point = kt * I_Mat.inv() * lazer_point; 
-
-
-		std::cout << "camera_point" << camera_point << std::endl;
-
-		camera_points.push_back( cv::Point3f(camera_point.at<double>(0,0),camera_point.at<double>(1,0),camera_point.at<double>(2,0) ));	
-		*/	
-
-
-		
-
-
 		cv::Mat r0 = rotation_mat.col(0);	
 		cv::Mat r1 = rotation_mat.col(1);	
 		cv::Mat t = translations[i]; 
@@ -301,19 +261,21 @@ int main( int argc, char* argv[])
 		
 	
 
-	
+		cv::Mat q_inv = q.inv();	
 		std::cout << "q" << q << std::endl;
-		std::cout << "k" << k << std::endl;
+		std::cout << "q_inv" << q_inv << std::endl;
 
 		
 		cv::Mat lazer_point = (cv::Mat_<double>(3,1) << lazer_points[i].x , lazer_points[i].y,1);
 		std::cout << "lazer_point" << lazer_point<< std::endl;
 		
 
+
+		cv::Mat I_Mat_inv = I_Mat.inv();
 		
 			
 		cv::Mat camera_point;
-		camera_point = k*q.inv()*I_Mat.inv()*lazer_point; 
+		camera_point = k*q_inv*I_Mat_inv*lazer_point; 
 
 
 		std::cout << "camera_point" << camera_point << std::endl;
