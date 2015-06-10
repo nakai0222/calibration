@@ -12,8 +12,8 @@
 #define CHESS_ROW 9
 #define CHESS_COLUM 6
 
-#define XI_W 640
-#define XI_H 480
+#define XI_W 648
+#define XI_H 488
 
 
 //平面の定義
@@ -100,11 +100,18 @@ int main( int argc, char* argv[])
 		image_name = ss.str();	
 		checker_image.push_back( cv::imread(image_name.c_str(),0) );
 
-		ss << i << "l.png";
-			image_name = ss.str();	
-		checker_image_lazer.push_back( cv::imread(image_name.c_str(),0) );
+
+		std::stringstream ss1;
+		std::string image_name1;
+		ss1 << i << "_.png";
+		image_name1 = ss1.str();	
+		checker_image_lazer.push_back( cv::imread(image_name1.c_str(),0) );
 
 	}
+
+	std::cout << checker_image_lazer[0].rows << std::endl;
+	std::cout << checker_image_lazer[0].cols<< std::endl;
+
 
 	//number of intersection point 
 	cv::Size checker_pattern_size(CHESS_ROW,CHESS_COLUM);
@@ -196,11 +203,11 @@ int main( int argc, char* argv[])
 		
 		cv::Mat gimg(XI_H, XI_W, CV_8UC1);
 
-		//cv::imshow("r",checker_image_lazer[i]);
 		cv::split(checker_image_lazer[i],split_imgl);
 		cv::threshold(split_imgl[BGR],gimg,thr,0,cv::THRESH_TOZERO);
 		//cv::threshold(split_imgl[BGR],checker_image_lazer[i],thr,0,cv::THRESH_TOZERO);
-		//cv::imshow("R",checker_image_lazer[i]);
+		cv::imshow("R",checker_image_lazer[i]);
+		cv::waitKey(0);
 
 		//cv::waitKey(0);
 		int most_brightness_number[2];
@@ -209,8 +216,8 @@ int main( int argc, char* argv[])
 		for(int j=0;j<checker_image_lazer[i].rows;j++){
 			for(int k=0;k<checker_image_lazer[i].cols;k++){
 
-				unsigned char tmp_brightness = gimg.at<uchar>(j,k);
-				//double tmp_brightness = checker_image_lazer[i].at<double>(j,k);
+				//unsigned char tmp_brightness = gimg.at<uchar>(j,k);
+				unsigned char tmp_brightness = checker_image_lazer[i].at<uchar>(j,k);
 
 				if((int)tmp_brightness >= most_brightness ){
 					most_brightness_number[0] = j;
@@ -222,9 +229,13 @@ int main( int argc, char* argv[])
 
 
 		std::cout << "x : " << most_brightness_number[0] << std::endl;
+		std::cout << "y : " << most_brightness_number[1] << std::endl;
 		cv::Point2f light_point(most_brightness_number[0],most_brightness_number[1]);
 
-		lazer_points.push_back(light_point);	
+		//lazer_points.push_back(light_point);
+		lazer_points[i].x = light_point.x;
+		lazer_points[i].y = light_point.y;
+		//std::cout << lazer_points[i].x << std::endl;
 	}	
 
 
@@ -251,6 +262,9 @@ int main( int argc, char* argv[])
 
 		std::cout << "diag" << diag << std::endl;
 
+		std::cout << "lazer_x : " << lazer_points[i].x << std::endl;
+		std::cout << "lazer_y : " << lazer_points[i].y << std::endl;
+		
 		cv::Mat lazer_point = (cv::Mat_<double>(3,1) << lazer_points[i].x , lazer_points[i].y,1);
 
 
