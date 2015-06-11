@@ -12,72 +12,10 @@
 #define CHESS_ROW 9
 #define CHESS_COLUM 6
 
+#define POINTS_FOR_ONEIMAGE 10
+
 #define XI_W 648
 #define XI_H 488
-
-
-//平面の定義
-class Plane {	//ax+by+cz+d=0
-	public:
-		double a,b,c,d;
-
-		Plane(){}
-		Plane(double a,double b,double c,double d){ this->a = a; this->b = b; this->c = c; this->d = d; }
-};
-
-//ベクトルの定義
-class Vector3D{
-	public:
-		double x,y,z;
-
-		Vector3D(){}
-		Vector3D( double x, double y, double z) {this->x = x; this->y = y; this->z = z; }
-
-		//ベクトル引き算( this - v )
-		Vector3D operator - ( const Vector3D& v ) const { return Vector3D( x - v.x, y - v.y, z - v.z ); }
-		//ベクトル外積( this × vr )
-		Vector3D operator * ( const Vector3D& vr ) const { return Vector3D( (y * vr.z) - (z * vr.y), (z * vr.x) - (x * vr.z), (x * vr.y) - (y * vr.x) ); }
-		//自身を単位ベクトルにする
-		void Normalize() {
-			double length = pow( ( x * x ) + ( y * y ) + ( z * z ), 0.5 );//ベクトルの長さ
-			x /= length;
-			y /= length;
-			z /= length;
-		}
-};
-//頂点の定義(ベクトルと同じ)
-#define Vertex3D Vector3D
-
-//頂点abcで作られたポリゴンから法線を計算する。
-Vector3D CreatePolygonNormal( Vertex3D a, Vertex3D b, Vertex3D c ) {
-
-	Vector3D ab = b - a;
-	Vector3D bc = c - b;
-
-	Vector3D normal = ab * bc;	//ab bcの外積
-	normal.Normalize();//単位ベクトルにする
-
-	return normal;
-}
-
-//ひとつの頂点と法線ベクトルから平面を作成する
-Plane CreatePlaneFromPointNormal( Vertex3D p, Vector3D normal )//※normalは単位ベクトルであること
-{
-	//pとnormalを内積
-	double d = p.x * normal.x + p.y * normal.y + p.z * normal.z;
-
-	return Plane( normal.x, normal.y, normal.z, d );
-}
-
-//ポリゴンから平面を作成する
-Plane CreatePlaneFromPolygon( Vertex3D a, Vertex3D b, Vertex3D c )//※abcは同一でないこと
-{	
-	//ポリゴンの法線を計算する
-	Vector3D normal = CreatePolygonNormal(a,b,c);
-
-	//ポリゴンのどれかひとつの頂点と法線ベクトルから平面を作成する
-	return CreatePlaneFromPointNormal( a, normal );
-}
 
 
 int main( int argc, char* argv[])
@@ -132,11 +70,11 @@ int main( int argc, char* argv[])
 	std::cout << "inner parameter: " << I_Mat << std::endl;
 	std::cout << "distCoeffs: " << D_Mat << std::endl;
 
-		 
+
 	cv::vector<cv::Mat> rotations;
 	cv::vector<cv::Mat> translations;
 
-		
+
 	//find checker patter
 	for(int i=0;i<IMAGE_SIZE;i++)
 	{
@@ -157,7 +95,7 @@ int main( int argc, char* argv[])
 			std::cout << "number : "<<i << std::endl;	
 			return -1;
 		}
-	
+
 	}
 
 
@@ -188,30 +126,30 @@ int main( int argc, char* argv[])
 
 
 	//calculate lazer points
-	cv::vector<cv::Point2f> lazer_points(IMAGE_SIZE);
+	cv::vector<cv::Point2f> lazer_points(POINTS_FOR_ONEIMAGE*IMAGE_SIZE);
 	int thr = 85;
 	int BGR = 0;
 	cv::Mat split_imgl[3];
 
 	//split color image
 	for(int i=0;i<IMAGE_SIZE;i++){
-		
+
 		cv::Mat gimg;
 
 		cv::split(checker_image_lazer[i],split_imgl);
 		//cv::threshold(checker_image_lazer[i],gimg,thr,0,cv::THRESH_TOZERO);
 		//cv::threshold(split_imgl[BGR],checker_image_lazer[i],thr,0,cv::THRESH_TOZERO);
 		cv::imshow("R",checker_image_lazer[i]);
-	
+
 		cv::imshow("r",split_imgl[BGR]);
 
 		cv::waitKey(0);
 
 		//checker_image_lazer[i] = split_imgl[BGR];	
 		gimg = split_imgl[BGR];	
-		
-		int most_brightness_number[2];
-		int most_brightness=0;
+
+		int most_brightness_number[POINTS_FOR_ONEIMAGE][2];
+		int most_brightness[POINTS_FOR_ONEIMAGE];
 
 		for(int j=0;j<checker_image_lazer[i].rows;j++){
 			for(int k=0;k<checker_image_lazer[i].cols;k++){
@@ -219,35 +157,47 @@ int main( int argc, char* argv[])
 				unsigned char tmp_brightness = gimg.at<uchar>(j,k);
 				//unsigned char tmp_brightness = checker_image_lazer[i].at<uchar>(j,k);
 
-				if((int)tmp_brightness >= most_brightness ){
-					most_brightness_number[0] = j;
-					most_brightness_number[1] = k;
-					most_brightness = tmp_brightness;
+				if((int)tmp_brightness >= most_brightness[0] ){
+
+					for(int t=POINTS_FOR_ONEIMAGE-1 ;t >= 1;t--){
+						most_brightness[t] = most_brightness[t-1];	
+
+						most_brightness_number[t][0] =most_brightness_number[t-1][0];
+						most_brightness_number[t][1] =most_brightness_number[t-1][1];
+
+
+					}
+
+					most_brightness_number[0][0] = j;
+					most_brightness_number[0][1] = k;
+					most_brightness[0] = tmp_brightness;
 				}	
 			}
 		}
 
 
-		std::cout << "x : " << most_brightness_number[0] << std::endl;
-		std::cout << "y : " << most_brightness_number[1] << std::endl;
-		cv::Point2f light_point(most_brightness_number[0],most_brightness_number[1]);
+		//std::cout << "x : " << most_brightness_number[0] << std::endl;
+		//std::cout << "y : " << most_brightness_number[1] << std::endl;
+		//cv::Point2f light_point(most_brightness_number[0],most_brightness_number[1]);
 
 		//lazer_points.push_back(light_point);
-		lazer_points[i].x = light_point.x;
-		lazer_points[i].y = light_point.y;
-		//std::cout << lazer_points[i].x << std::endl;
+		for(int t= i*POINTS_FOR_ONEIMAGE ; t< (i+1) *POINTS_FOR_ONEIMAGE;t++){
+			lazer_points[t].x = most_brightness_number[t][0];
+			lazer_points[t].y = most_brightness_number[t][1];
+
+		}
 	}	
 
 
 	cv::vector <cv::Point3f> camera_points;
 
-	for(int i=0;i<IMAGE_SIZE;i++){
+	for(int i=0;i<IMAGE_SIZE*POINTS_FOR_ONEIMAGE;i++){
 
 
 		//translate points at camera axis 
 		cv::Mat r0 = rotation_mat.col(0);	
 		cv::Mat r1 = rotation_mat.col(1);	
-		cv::Mat t = translations[i]; 
+		cv::Mat t = translations[i/POINTS_FOR_ONEIMAGE]; 
 
 
 
@@ -258,22 +208,22 @@ int main( int argc, char* argv[])
 
 		cv::Mat k = (cv::Mat_<double>(4,3) << q.at<double>(0,0)  , q.at<double>(0,1)  , q.at<double>(0,2)  , q.at<double>(1,0)  , q.at<double>(1,1)  , q.at<double>(1,2)  , q.at<double>(2,0)  , q.at<double>(2,1)  , q.at<double>(2,2)  , 0 , 0, 1  );
 
-		
-	
+
+
 
 		cv::Mat q_inv = q.inv();	
 		std::cout << "q" << q << std::endl;
 		std::cout << "q_inv" << q_inv << std::endl;
 
-		
+
 		cv::Mat lazer_point = (cv::Mat_<double>(3,1) << lazer_points[i].x , lazer_points[i].y,1);
 		std::cout << "lazer_point" << lazer_point<< std::endl;
-		
+
 
 
 		cv::Mat I_Mat_inv = I_Mat.inv();
-		
-			
+
+
 		cv::Mat camera_point;
 		camera_point = k*q_inv*I_Mat_inv*lazer_point; 
 
@@ -283,42 +233,21 @@ int main( int argc, char* argv[])
 
 		double div = camera_point.at<double>(3,0);
 		std::cout << "div : " << div << std::endl;
-		
+
 		camera_points.push_back( cv::Point3f(camera_point.at<double>(0,0)/div,camera_point.at<double>(1,0)/div,camera_point.at<double>(2,0)/div ));	
 		//camera_points.push_back( cv::Point3f(camera_point.at<double>(0,0),camera_point.at<double>(1,0),camera_point.at<double>(2,0) ));	
-			
 
 		//camera_points.push_back(cv::Point3f(1,1,1));	
 	}
 
-	Vertex3D plane_points[IMAGE_SIZE]; 	
-
-	for(int i=0;i<IMAGE_SIZE;i++){
-		plane_points[i].x = camera_points[i].x;
-		std::cout << "x" << camera_points[i].x  << std::endl;
-		plane_points[i].y = camera_points[i].y;
-		std::cout << "y" <<  camera_points[i].y << std::endl;
-		plane_points[i].z = camera_points[i].z;
-		std::cout << "z" << camera_points[i].z << std::endl << std::endl;
-	}
-
-
-	//calculate ax+by+cz+d=0 
-	Plane plane;
-	CreatePlaneFromPolygon(plane_points[0],plane_points[1],plane_points[2]);
-	std::cout << "complete projector plane "<< std::endl;
-	std::cout << "a : "<< plane.a << std::endl;
-	std::cout << "b : "<< plane.b<<std::endl;
-	std::cout << "c : "<< plane.c<<std::endl;
-	std::cout << "d : "<< plane.d<<std::endl<<std::endl;
-
-
-
-	std::cout << "c/a : "<< plane.c/plane.a<<std::endl;
-	std::cout << "d/a : "<< plane.d/plane.a<<std::endl;
-	std::cout << "b/a : "<< plane.b/plane.a<<std::endl;
-
-
+	/*
+	//output file 
+	cv::FileStorage fs_projector("projector.xml",cv::FileStorage::WRITE);
+	fs_projector << "plane_a" << plane.a; 
+	fs_projector << "plane_b" << plane.b; 
+	fs_projector << "plane_c" << plane.c; 
+	fs_projector << "plane_d" << plane.d; 
+	 */
 	return 0;
 }
 
