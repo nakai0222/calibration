@@ -40,21 +40,25 @@ int main(){
 
 	cv::split(cimgl,split_imgl);
 
-	
+
 	//cv::threshold(split_imgl[BGR+1],gimgl,thr,0,THRESH_TOZERO);
 
 	//gimgl = cimgl.clone(); 
 	gimgl = split_imgl[BGR];
-	
+
 	cv::namedWindow("R");
 	cv::imshow("R",gimgl);
 	cv::imshow("R2",cimgl);
 	cv::imshow("R4",split_imgl[0]);
-	
-	int max = 0;
-	int max_num =0;
-	int max_num_i =0;
-	int max_num_j = 0;	
+
+#define POINTNUM 20
+
+	int max[POINTNUM] ;
+	int max_num[POINTNUM];
+	int max_num_i[POINTNUM];
+	int max_num_j[POINTNUM];	
+
+
 	int count =0;
 
 	int squ = 3;
@@ -64,32 +68,62 @@ int main(){
 			//unsigned char pixel = gimgl.at<uchar>(i,j);
 			int pixel = gimgl.at<uchar>(i,j);
 
-			if( (int)pixel >=  max ){
-				max = pixel;
+			if( (int)pixel >=  max[0] ){
+
+
+				for(int i=POINTNUM-1 ;i >= 1;i--){
+					max[i] = max[i-1];	
+
+					max_num_i[i] = max_num_i[i-1];
+					max_num_j[i] = max_num_j[i-1];
+
+				}
+				max[0] = pixel;
+				max_num_i[0] = i;
+				max_num_j[0] = j;
 
 				count++;
-				max_num_i = i;
-				max_num_j = j;
-
-				max_num = i*cimgl.rows+ j;
+				//max_num = i*cimgl.rows+ j;
 				//gimgl.at<uchar>(10,0) = 255;	
-				std::cout << "brightness : "<<(int)pixel << std::endl;
+				//std::cout << "brightness : "<<(int)pixel << std::endl;
 			}
 		}
 	}
 
 
 	std::cout << count << std::endl;
+	std::cout << max_num_i[0] << std::endl;
+	std::cout << max_num_j[0]<< std::endl;
+
+	std::cout << max_num_i[1] << std::endl;
+	std::cout << max_num_j[1]<< std::endl;
+
+	std::cout << max_num_i[2] << std::endl;
+	std::cout << max_num_j[2]<< std::endl;
+
+	std::cout << max_num_i[3] << std::endl;
+	std::cout << max_num_j[3]<< std::endl;
+
 
 	for(int i=0;i<gimgl.rows;i++){
 		for(int j=0;j<gimgl.cols;j++){
-			if( i < max_num_i +squ &&  i > max_num_i -squ  && (j < squ+ max_num_j && j >max_num_j-squ ))
 
-				gimgl.at<uchar>(i,j) = 255;	
+			int check=0;
 
+			for(int k=0;k<POINTNUM ;k++){
+				if( i == max_num_i[k] && j == max_num_j[k]) 
+				//if( i < max_num_i[i] +squ &&  i > max_num_i[i] -squ  && (j < squ+ max_num_j[i] && j >max_num_j[i]-squ ))
+				check++;
+			}
+
+
+			if(check > 0)
+
+				gimgl.at<uchar>(i,j) = 255;
+			
 			else
 
-				gimgl.at<uchar>(i,j) = 0;	
+				gimgl.at<uchar>(i,j) = 0;
 
 		}
 	}
