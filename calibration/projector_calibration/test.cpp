@@ -7,7 +7,7 @@
 #include <string>
 #include <math.h>
 
-#define IMAGE_SIZE 3
+#define IMAGE_SIZE 4
 #define CHESS_SIZE 21
 #define CHESS_ROW 9
 #define CHESS_COLUM 6
