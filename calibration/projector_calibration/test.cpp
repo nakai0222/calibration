@@ -116,12 +116,14 @@ int main( int argc, char* argv[])
 		translations.push_back(tmp_translation);	
 	}
 
+	cv::vector<cv::Mat> rotation_mat(IMAGE_SIZE);
 
+	for(int i=0;i<IMAGE_SIZE;i++){
+	cv::Rodrigues(rotations[i],rotation_mat[i]);
+	std::cout << "rotation mat : " <<  rotation_mat<< std::endl;
+	}	
 	std::cout << "rotation : " <<  rotations[0]<< std::endl;
 
-	cv::Mat rotation_mat;
-	cv::Rodrigues(rotations[0],rotation_mat);
-	std::cout << "rotation mat : " <<  rotation_mat<< std::endl;
 	std::cout << "translation : " <<  translations[0]<< std::endl;
 
 
@@ -182,8 +184,10 @@ int main( int argc, char* argv[])
 
 		//lazer_points.push_back(light_point);
 		for(int t= i*POINTS_FOR_ONEIMAGE ; t< (i+1) *POINTS_FOR_ONEIMAGE;t++){
-			lazer_points[t].x = most_brightness_number[t][0];
-			lazer_points[t].y = most_brightness_number[t][1];
+			lazer_points[t].x = t+ 5;
+			//lazer_points[t].x = most_brightness_number[t][0];
+			lazer_points[t].y = t;
+			//lazer_points[t].y = most_brightness_number[t][1];
 
 		}
 	}	
@@ -213,7 +217,7 @@ int main( int argc, char* argv[])
 
 		cv::Mat q_inv = q.inv();	
 		std::cout << "q" << q << std::endl;
-		std::cout << "q_inv" << q_inv << std::endl;
+		//std::cout << "q_inv" << q_inv << std::endl;
 
 
 		cv::Mat lazer_point = (cv::Mat_<double>(3,1) << lazer_points[i].x , lazer_points[i].y,1);
@@ -239,6 +243,14 @@ int main( int argc, char* argv[])
 
 		//camera_points.push_back(cv::Point3f(1,1,1));	
 	}
+
+
+	//calculate plane parameter
+
+	
+		
+		
+
 
 	/*
 	//output file 
