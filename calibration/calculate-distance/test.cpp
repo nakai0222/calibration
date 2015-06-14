@@ -76,7 +76,6 @@ int main( int argc, char* argv[])
 		cv::imshow("R",lazer_image[i]);
 		cv::imshow("R2",gimg);
 
-		cv::waitKey(0);
 
 		int most_brightness_number[LAZER_POINTS][2];
 		int most_brightness[LAZER_POINTS];
@@ -114,6 +113,36 @@ int main( int argc, char* argv[])
 			}
 		}
 
+		cv::Mat gimgl(lazer_image[i].size(),lazer_image[i].type()) ;
+		gimgl = lazer_image[i];
+
+
+		for(int i=0;i<gimgl.rows;i++){
+			for(int j=0;j<gimgl.step;j++){
+
+				int check=0;
+
+				for(int k=0;k<LAZER_POINTS;k++){
+					if( i == most_brightness_number[k][0] && j == most_brightness_number[k][1]) 
+						check++;
+				}
+
+				if(check > 0){
+
+
+					gimgl.data[i*gimgl.step+ j] =  255;
+
+
+				}
+
+				else
+					gimgl.data[i*gimgl.step+ j] =  0;
+
+
+			}
+		}
+
+		cv::imshow("R3",gimgl);
 
 		//lazer_points.push_back(light_point);
 		for(int t= i*LAZER_POINTS; t< (i+1) *LAZER_POINTS;t++){
@@ -122,37 +151,29 @@ int main( int argc, char* argv[])
 			//lazer_points[t].y = t;
 			lazer_points[t].y = most_brightness_number[t-i*LAZER_POINTS][1];
 		}
-		
+
+		cv::waitKey(0);
 	}	
-
-	for(int i=0;i<IMAGE_SIZE;i++){
-	for(int j=0;j<LAZER_POINTS;j++){
-
-				
-
-		}
-	}
-
 
 	//calculate location information
 	cv::vector<cv::Point3f> location_inf;
 
 
-		double l = plane_d/plane_a;
-		double sita = std::atan(-plane_c/plane_a);
-		double fai = std::atan(-plane_b/plane_a);
+	double l = plane_d/plane_a;
+	double sita = std::atan(-plane_c/plane_a);
+	double fai = std::atan(-plane_b/plane_a);
 
-		double alfa = I_Mat.at<double>(0,0);
-		double beta = I_Mat.at<double>(1,1);
-		double ganma = I_Mat.at<double>(0,1);
-		double u0 = I_Mat.at<double>(0,2);
-		double v0 = I_Mat.at<double>(1,2);
+	double alfa = I_Mat.at<double>(0,0);
+	double beta = I_Mat.at<double>(1,1);
+	double ganma = I_Mat.at<double>(0,1);
+	double u0 = I_Mat.at<double>(0,2);
+	double v0 = I_Mat.at<double>(1,2);
 
 
 	for(int i=0;i<IMAGE_SIZE*LAZER_POINTS;i++){
 
-	
-	
+
+
 		double location_z = ( l / (std::tan(sita) - ( ((lazer_points[i].x - u0) - (ganma/beta    ) * (lazer_points[i].y - v0) ) / alfa ) + std::tan(fai)*(lazer_points[i].y - v0)/beta ) );
 		//location_inf.z = ( l / (std::tan(sita) - ( ((lazer_points[i].x - u0) - (ganma/beta    ) * (lazer_points[i].y - v0) ) / alfa ) + std::tan(fai)*(lazer_points[i].y - v0)/beta ) );
 
@@ -164,7 +185,7 @@ int main( int argc, char* argv[])
 
 		location_inf.push_back(cv::Point3f(location_x,location_y,location_z) );
 
-	
+
 	}
 
 
