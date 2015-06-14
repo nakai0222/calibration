@@ -7,7 +7,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <math.h>
+#include <cmath>
 
 #define IMAGE_SIZE 5
 #define CHESS_SIZE 21
@@ -264,8 +264,7 @@ int main( int argc, char* argv[])
 	}
 
 	//calculate plane parameter
-	//URL : www.soi-j.co.jp/mallmag/d-ooo1.html
-
+	//URL:samueruchoi.blogspot.jp/2013/02/matlab_20.html
 
 
 	int x_sum = 0;
@@ -274,12 +273,13 @@ int main( int argc, char* argv[])
 	int x_squ_sum =0;
 	int y_squ_sum =0;
 	int z_squ_sum =0;
+	int x_y_sum =0;
+	int x_z_sum =0;
+	int y_z_sum =0;
+	
 
 	for(int i=0;i<IMAGE_SIZE*POINTS_FOR_ONEIMAGE;i++){
 
-		std::cout <<  "x : "<< camera_points[i].x <<std::endl;
-		std::cout <<  "y : "<< camera_points[i].y <<std::endl;
-		std::cout <<  "z : "<< camera_points[i].z <<std::endl;
 		x_sum += camera_points[i].x;
 		y_sum += camera_points[i].y;
 		z_sum += camera_points[i].z;
@@ -288,6 +288,9 @@ int main( int argc, char* argv[])
 		y_squ_sum += camera_points[i].y*camera_points[i].y;
 		z_squ_sum += camera_points[i].z*camera_points[i].z;
 
+		x_y_sum += camera_points[i].x*camera_points[i].y;
+		x_z_sum += camera_points[i].x*camera_points[i].z;
+		y_z_sum += camera_points[i].y*camera_points[i].z;
 	
 	}
 
@@ -299,9 +302,11 @@ int main( int argc, char* argv[])
 
 	int projector_parametter_num = 3;
 
-	cv::Mat M = (cv::Mat_<double>(projector_parametter_num,projector_parametter_num) << IMAGE_SIZE*POINTS_FOR_ONEIMAGE,x_sum,y_sum,x_sum,x_squ_sum,x_sum*y_sum,y_sum,x_sum*y_sum,y_squ_sum);
+	cv::Mat M = (cv::Mat_<double>(projector_parametter_num,projector_parametter_num) << x_squ_sum,x_y_sum,x_sum,x_y_sum,y_squ_sum,y_sum,x_sum,y_sum,IMAGE_SIZE*POINTS_FOR_ONEIMAGE);
+	//cv::Mat M = (cv::Mat_<double>(projector_parametter_num,projector_parametter_num) << IMAGE_SIZE*POINTS_FOR_ONEIMAGE,x_sum,y_sum,x_sum,x_squ_sum,x_sum*y_sum,y_sum,x_sum*y_sum,y_squ_sum);
 
-	cv::Mat u = (cv::Mat_<double>(projector_parametter_num,1)<< z_sum ,x_sum*z_sum , y_sum*z_sum);
+	cv::Mat u = (cv::Mat_<double>(projector_parametter_num,1)<< x_z_sum ,y_z_sum, z_sum);
+	//cv::Mat u = (cv::Mat_<double>(projector_parametter_num,1)<< z_sum ,x_sum*z_sum , y_sum*z_sum);
 
 	//cv::Mat projector_parametter = (cv::Mat_<double>(projector_parametter_num,1) << 0,0,0) ;
 
@@ -318,14 +323,27 @@ int main( int argc, char* argv[])
 	std::cout << "projector_parametter : " << projector_parametter << std::endl;
 
 
-	/*
+	//ax+by+cz+d = 0
+	double plane_c = 1/sqrt(projector_parametter.at<double>(0,0)*projector_parametter.at<double>(0,0) + projector_parametter.at<double>(1,0)*projector_parametter.at<double>(1,0) + 1);
+	double plane_a = -projector_parametter.at<double>(0,0)*plane_c;
+	double plane_b = -projector_parametter.at<double>(1,0)*plane_c;
+	double plane_d = -projector_parametter.at<double>(2,0)*plane_c;
+
+
+	std::cout << "plane_a : " << plane_a << std::endl;
+	std::cout << "plane_b : " << plane_b << std::endl;
+	std::cout << "plane_c : " << plane_c << std::endl;
+	std::cout << "plane_d : " << plane_d << std::endl;
+
+		
 	//output file 
 	cv::FileStorage fs_projector("projector.xml",cv::FileStorage::WRITE);
-	fs_projector << "plane_a" << plane.a; 
-	fs_projector << "plane_b" << plane.b; 
-	fs_projector << "plane_c" << plane.c; 
-	fs_projector << "plane_d" << plane.d; 
-	 */
+	fs_projector << "plane_a" << plane_a ;
+	fs_projector << "plane_b" << plane_b ;
+	fs_projector << "plane_c" << plane_c ;
+	fs_projector << "plane_d" << plane_d ;
+	//fs_projector << "plane_d" << projector_parameter.data[3]; 
+		
 
 	return 0;
 
