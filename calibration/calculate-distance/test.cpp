@@ -122,7 +122,16 @@ int main( int argc, char* argv[])
 			//lazer_points[t].y = t;
 			lazer_points[t].y = most_brightness_number[t-i*LAZER_POINTS][1];
 		}
+		
 	}	
+
+	for(int i=0;i<IMAGE_SIZE;i++){
+	for(int j=0;j<LAZER_POINTS;j++){
+
+				
+
+		}
+	}
 
 
 	//calculate location information
