@@ -8,6 +8,7 @@
 #include <cmath>
 
 #define IMAGE_SIZE 1
+#define LAZER_POINTS 1
 #define CHESS_SIZE 21
 #define CHESS_ROW 9
 #define CHESS_COLUM 6
@@ -21,7 +22,7 @@ int main( int argc, char* argv[])
 	//load the raw and lazer image 
 
 	cv::vector<cv::Mat> lazer_image;
-	//cv::vector<cv::Mat> checker_image(XI_H,XI_W,CV_8UC1);
+	//cv::vector<cv::Mat> lazer_image(XI_H,XI_W,CV_8UC1);
 
 	for(int i=0;i<IMAGE_SIZE;i++)
 	{
@@ -64,57 +65,67 @@ int main( int argc, char* argv[])
 
 
 	//calculate lazer points
-	cv::vector<cv::Point2f> lazer_points(IMAGE_SIZE);
-	int thr = 85;
-	int BGR = 0;
-	cv::Mat split_imgl[3];
+	cv::vector<cv::Point2i> lazer_points(IMAGE_SIZE*LAZER_POINTS);
+	//int thr = 85;
+	//int BGR = 0;
+	//cv::Mat split_imgl[3];
 
 	//split color image
 	for(int i=0;i<IMAGE_SIZE;i++){
 
-		cv::Mat gimg;
+		cv::Mat gimg(lazer_image[i].size(),lazer_image[i].type()) ;
+		gimg = lazer_image[i];
 
-		cv::split(lazer_image[i],split_imgl);
-		//cv::threshold(checker_image_lazer[i],gimg,thr,0,cv::THRESH_TOZERO);
-		//cv::threshold(split_imgl[BGR],checker_image_lazer[i],thr,0,cv::THRESH_TOZERO);
 		cv::imshow("R",lazer_image[i]);
+		cv::imshow("R2",gimg);
 
-		cv::imshow("r",split_imgl[BGR]);
+			cv::waitKey(0);
 
-		cv::waitKey(0);
+		int most_brightness_number[LAZER_POINTS][2];
+		int most_brightness[LAZER_POINTS];
 
-		//checker_image_lazer[i] = split_imgl[BGR];	
-		gimg = split_imgl[BGR];	
 
-		int most_brightness_number[2];
-		int most_brightness=0;
+		for(int i=0;i<LAZER_POINTS;i++){
+			most_brightness[i]=0;
+			most_brightness_number[i][0]=0;
+			most_brightness_number[i][1]=0;
+		}	
+
 
 		for(int j=0;j<gimg.rows;j++){
-			for(int k=0;k<gimg.cols;k++){
+			for(int k=0;k<gimg.step;k++){
 
-				unsigned char tmp_brightness = gimg.at<uchar>(j,k);
-				//unsigned char tmp_brightness = checker_image_lazer[i].at<uchar>(j,k);
+				//unsigned char tmp_brightness = gimg.at<uchar>(j,k);
+				int tmp_brightness = cv::saturate_cast<int>(gimg.data[j*gimg.step+k]);
+				//unsigned char tmp_brightness = lazer_image_lazer[i].at<uchar>(j,k);
 
-				if((int)tmp_brightness >= most_brightness ){
-					most_brightness_number[0] = j;
-					most_brightness_number[1] = k;
-					most_brightness = tmp_brightness;
+				if( tmp_brightness >= most_brightness[0] ){
+
+					for(int t=LAZER_POINTS-1 ;t >= 1;t--){
+						most_brightness[t] = most_brightness[t-1];	
+
+						most_brightness_number[t][0] =most_brightness_number[t-1][0];
+						most_brightness_number[t][1] =most_brightness_number[t-1][1];
+
+
+					}
+
+					most_brightness_number[0][0] = j;
+					most_brightness_number[0][1] = k;
+					most_brightness[0] = tmp_brightness;
 				}	
 			}
 		}
 
 
-		std::cout << "x : " << most_brightness_number[0] << std::endl;
-		std::cout << "y : " << most_brightness_number[1] << std::endl;
-		cv::Point2f light_point(most_brightness_number[0],most_brightness_number[1]);
-
 		//lazer_points.push_back(light_point);
-		lazer_points[i].x = light_point.x;
-		lazer_points[i].y = light_point.y;
-		//std::cout << lazer_points[i].x << std::endl;
+		for(int t= i*LAZER_POINTS; t< (i+1) *LAZER_POINTS;t++){
+			//lazer_points[t].x = t+ 5;
+			lazer_points[t].x = most_brightness_number[t-i*LAZER_POINTS][0];
+			//lazer_points[t].y = t;
+			lazer_points[t].y = most_brightness_number[t-i*LAZER_POINTS][1];
+		}
 	}	
-
-
 
 
 	//calculate location information
@@ -145,7 +156,11 @@ int main( int argc, char* argv[])
 
 		location_inf.push_back(cv::Point3f(location_x,location_y,location_z) );
 
+	
 	}
+
+
+	std::cout << "location : " << location_inf << std::endl;
 
 	return 0;
 }
