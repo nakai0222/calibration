@@ -8,7 +8,7 @@
 #include <cmath>
 
 #define IMAGE_SIZE 1
-#define LAZER_POINTS 1
+#define LAZER_POINTS 5
 #define CHESS_SIZE 21
 #define CHESS_ROW 9
 #define CHESS_COLUM 6
@@ -66,11 +66,8 @@ int main( int argc, char* argv[])
 
 	//calculate lazer points
 	cv::vector<cv::Point2i> lazer_points(IMAGE_SIZE*LAZER_POINTS);
-	//int thr = 85;
-	//int BGR = 0;
-	//cv::Mat split_imgl[3];
 
-	//split color image
+
 	for(int i=0;i<IMAGE_SIZE;i++){
 
 		cv::Mat gimg(lazer_image[i].size(),lazer_image[i].type()) ;
@@ -79,7 +76,7 @@ int main( int argc, char* argv[])
 		cv::imshow("R",lazer_image[i]);
 		cv::imshow("R2",gimg);
 
-			cv::waitKey(0);
+		cv::waitKey(0);
 
 		int most_brightness_number[LAZER_POINTS][2];
 		int most_brightness[LAZER_POINTS];
@@ -131,7 +128,6 @@ int main( int argc, char* argv[])
 	//calculate location information
 	cv::vector<cv::Point3f> location_inf;
 
-	for(int i=0;i<IMAGE_SIZE;i++){
 
 		double l = plane_d/plane_a;
 		double sita = std::atan(-plane_c/plane_a);
@@ -144,7 +140,10 @@ int main( int argc, char* argv[])
 		double v0 = I_Mat.at<double>(1,2);
 
 
+	for(int i=0;i<IMAGE_SIZE*LAZER_POINTS;i++){
 
+	
+	
 		double location_z = ( l / (std::tan(sita) - ( ((lazer_points[i].x - u0) - (ganma/beta    ) * (lazer_points[i].y - v0) ) / alfa ) + std::tan(fai)*(lazer_points[i].y - v0)/beta ) );
 		//location_inf.z = ( l / (std::tan(sita) - ( ((lazer_points[i].x - u0) - (ganma/beta    ) * (lazer_points[i].y - v0) ) / alfa ) + std::tan(fai)*(lazer_points[i].y - v0)/beta ) );
 
