@@ -14,7 +14,7 @@
 #define CHESS_ROW 9
 #define CHESS_COLUM 6
 
-#define POINTS_FOR_ONEIMAGE 2 
+#define POINTS_FOR_ONEIMAGE 10 
 
 #define XI_W 648
 #define XI_H 488
