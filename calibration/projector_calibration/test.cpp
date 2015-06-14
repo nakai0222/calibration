@@ -1,3 +1,5 @@
+
+
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
@@ -7,15 +9,16 @@
 #include <string>
 #include <math.h>
 
-#define IMAGE_SIZE 4
+#define IMAGE_SIZE 5
 #define CHESS_SIZE 21
 #define CHESS_ROW 9
 #define CHESS_COLUM 6
 
-#define POINTS_FOR_ONEIMAGE 10
+#define POINTS_FOR_ONEIMAGE 2 
 
 #define XI_W 648
 #define XI_H 488
+
 
 
 int main( int argc, char* argv[])
@@ -119,7 +122,7 @@ int main( int argc, char* argv[])
 	cv::vector<cv::Mat> rotations_mat(IMAGE_SIZE);
 
 	for(int i=0;i<IMAGE_SIZE;i++){
-	cv::Rodrigues(rotations[i],rotations_mat[i]);
+		cv::Rodrigues(rotations[i],rotations_mat[i]);
 	}	
 	std::cout << "rotation : " <<  rotations[0]<< std::endl;
 	std::cout << "rotation mat : " <<  rotations_mat[0]<< std::endl;
@@ -127,38 +130,52 @@ int main( int argc, char* argv[])
 
 
 	//calculate lazer points
-	cv::vector<cv::Point2f> lazer_points(POINTS_FOR_ONEIMAGE*IMAGE_SIZE);
-	int thr = 85;
-	int BGR = 0;
-	cv::Mat split_imgl[3];
+	cv::vector<cv::Point2i> lazer_points(POINTS_FOR_ONEIMAGE*IMAGE_SIZE);
+	//int thr = 85;
+	//int BGR = 0;
+	//cv::Mat split_imgl[3];
 
 	//split color image
 	for(int i=0;i<IMAGE_SIZE;i++){
 
-		cv::Mat gimg;
+		cv::Mat gimg(checker_image_lazer[i].size(),checker_image_lazer[i].type()) ;
+		gimg = checker_image_lazer[i];
 
-		cv::split(checker_image_lazer[i],split_imgl);
+		//std::cout <<  "gimg.step : "<< gimg.step << std::endl;
+		//std::cout <<  "gimg.channel: "<< gimg.channels()<< std::endl;
+
+		//cv::split(checker_image_lazer[i],split_imgl);
 		//cv::threshold(checker_image_lazer[i],gimg,thr,0,cv::THRESH_TOZERO);
 		//cv::threshold(split_imgl[BGR],checker_image_lazer[i],thr,0,cv::THRESH_TOZERO);
 		cv::imshow("R",checker_image_lazer[i]);
+		cv::imshow("R2",gimg);
 
-		cv::imshow("r",split_imgl[BGR]);
+		//cv::imshow("r",split_imgl[BGR]);
 
 		cv::waitKey(0);
 
 		//checker_image_lazer[i] = split_imgl[BGR];	
-		gimg = split_imgl[BGR];	
+		//gimg = split_imgl[BGR];	
 
 		int most_brightness_number[POINTS_FOR_ONEIMAGE][2];
 		int most_brightness[POINTS_FOR_ONEIMAGE];
 
-		for(int j=0;j<checker_image_lazer[i].rows;j++){
-			for(int k=0;k<checker_image_lazer[i].cols;k++){
 
-				unsigned char tmp_brightness = gimg.at<uchar>(j,k);
+		for(int i=0;i<POINTS_FOR_ONEIMAGE;i++){
+			most_brightness[i]=0;
+			most_brightness_number[i][0]=0;
+			most_brightness_number[i][1]=0;
+		}	
+
+
+		for(int j=0;j<gimg.rows;j++){
+			for(int k=0;k<gimg.step;k++){
+
+				//unsigned char tmp_brightness = gimg.at<uchar>(j,k);
+				int tmp_brightness = cv::saturate_cast<int>(gimg.data[j*gimg.step+k]);
 				//unsigned char tmp_brightness = checker_image_lazer[i].at<uchar>(j,k);
 
-				if((int)tmp_brightness >= most_brightness[0] ){
+				if( tmp_brightness >= most_brightness[0] ){
 
 					for(int t=POINTS_FOR_ONEIMAGE-1 ;t >= 1;t--){
 						most_brightness[t] = most_brightness[t-1];	
@@ -184,10 +201,9 @@ int main( int argc, char* argv[])
 		//lazer_points.push_back(light_point);
 		for(int t= i*POINTS_FOR_ONEIMAGE ; t< (i+1) *POINTS_FOR_ONEIMAGE;t++){
 			//lazer_points[t].x = t+ 5;
-			lazer_points[t].x = most_brightness_number[t][0];
+			lazer_points[t].x = most_brightness_number[t-i*POINTS_FOR_ONEIMAGE][0];
 			//lazer_points[t].y = t;
-			lazer_points[t].y = most_brightness_number[t][1];
-
+			lazer_points[t].y = most_brightness_number[t-i*POINTS_FOR_ONEIMAGE][1];
 		}
 	}	
 
@@ -197,10 +213,11 @@ int main( int argc, char* argv[])
 	for(int i=0;i<IMAGE_SIZE*POINTS_FOR_ONEIMAGE;i++){
 
 
-		//translate points at camera axis 
-		cv::Mat r0 = rotations_mat[i/POINTS_FOR_ONEIMAGE].col(0);	
-		cv::Mat r1 = rotations_mat[i/POINTS_FOR_ONEIMAGE].col(1);	
-		cv::Mat t = translations[i/POINTS_FOR_ONEIMAGE]; 
+		//translate points at camera axis
+		int vector_num = static_cast<int>(i/POINTS_FOR_ONEIMAGE); 
+		cv::Mat r0 = rotations_mat[vector_num].col(0);	
+		cv::Mat r1 = rotations_mat[vector_num].col(1);	
+		cv::Mat t = translations[vector_num]; 
 
 
 		cv::Mat q = (cv::Mat_<double>(3,3)<<  r0.at<double>(0,0),  r1.at<double>(0,0),  t.at<double>(0,0),  r0.at<double>(1,0),  r1.at<double>(1,0),  t.at<double>(1,0), r0.at<double>(2,0),  r1.at<double>(2,0),  t.at<double>(2,0)) ;
@@ -213,17 +230,16 @@ int main( int argc, char* argv[])
 
 
 		cv::Mat q_inv = q.inv();	
-		std::cout << "q" << q << std::endl;
-		std::cout << "k" << k<< std::endl;
+		//std::cout << "q" << q << std::endl;
+		//std::cout << "k" << k<< std::endl;
 
 
 		cv::Mat lazer_point = (cv::Mat_<double>(3,1) << lazer_points[i].x , lazer_points[i].y,1);
-		std::cout << "lazer_point" << lazer_point<< std::endl;
+		std::cout << "lazer_point" << lazer_point << std::endl;
 
 
 
 		cv::Mat I_Mat_inv = I_Mat.inv();
-
 
 		cv::Mat camera_point;
 		//camera_point = k*q_inv*I_Mat_inv*lazer_point; 
@@ -236,8 +252,8 @@ int main( int argc, char* argv[])
 
 
 		double div = camera_point.at<double>(3,0);
-		std::cout << "div : " << div << std::endl;
-		
+		//std::cout << "div : " << div << std::endl;
+
 
 		std::cout << "camera_point" << camera_point/div << std::endl;
 
@@ -247,8 +263,59 @@ int main( int argc, char* argv[])
 		//camera_points.push_back(cv::Point3f(1,1,1));	
 	}
 
-
 	//calculate plane parameter
+	//URL : www.soi-j.co.jp/mallmag/d-ooo1.html
+
+
+
+	int x_sum = 0;
+	int y_sum = 0;
+	int z_sum = 0;
+	int x_squ_sum =0;
+	int y_squ_sum =0;
+	int z_squ_sum =0;
+
+	for(int i=0;i<IMAGE_SIZE*POINTS_FOR_ONEIMAGE;i++){
+
+		std::cout <<  "x : "<< camera_points[i].x <<std::endl;
+		std::cout <<  "y : "<< camera_points[i].y <<std::endl;
+		std::cout <<  "z : "<< camera_points[i].z <<std::endl;
+		x_sum += camera_points[i].x;
+		y_sum += camera_points[i].y;
+		z_sum += camera_points[i].z;
+
+		x_squ_sum += camera_points[i].x*camera_points[i].x;
+		y_squ_sum += camera_points[i].y*camera_points[i].y;
+		z_squ_sum += camera_points[i].z*camera_points[i].z;
+
+	
+	}
+
+	
+	std::cout << "x_sum : " << x_sum<< std::endl;
+	std::cout << "y_sum : " << y_sum<< std::endl;
+	std::cout << "z_sum : " << z_sum<< std::endl;
+
+
+	int projector_parametter_num = 3;
+
+	cv::Mat M = (cv::Mat_<double>(projector_parametter_num,projector_parametter_num) << IMAGE_SIZE*POINTS_FOR_ONEIMAGE,x_sum,y_sum,x_sum,x_squ_sum,x_sum*y_sum,y_sum,x_sum*y_sum,y_squ_sum);
+
+	cv::Mat u = (cv::Mat_<double>(projector_parametter_num,1)<< z_sum ,x_sum*z_sum , y_sum*z_sum);
+
+	//cv::Mat projector_parametter = (cv::Mat_<double>(projector_parametter_num,1) << 0,0,0) ;
+
+	std::cout << "M : " << M<< std::endl;
+	std::cout << "M_inv : " << M.inv() << std::endl;
+	std::cout << "u : " << u<< std::endl;
+	
+
+
+	cv::Mat projector_parametter;  
+	projector_parametter = M.inv()*u;
+
+
+	std::cout << "projector_parametter : " << projector_parametter << std::endl;
 
 
 	/*
@@ -259,7 +326,10 @@ int main( int argc, char* argv[])
 	fs_projector << "plane_c" << plane.c; 
 	fs_projector << "plane_d" << plane.d; 
 	 */
+
 	return 0;
+
+
 }
 
 
