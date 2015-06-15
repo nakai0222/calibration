@@ -20,7 +20,6 @@
 #define XI_H 488
 
 
-
 int main( int argc, char* argv[])
 {
 
@@ -37,14 +36,14 @@ int main( int argc, char* argv[])
 		//load images
 		std::stringstream ss;
 		std::string image_name;
-		ss <<  i << ".png";
+		ss <<  "./lazer_picture/"<<  i << ".png";
 		image_name = ss.str();	
 		checker_image.push_back( cv::imread(image_name.c_str(),0) );
 
 
 		std::stringstream ss1;
 		std::string image_name1;
-		ss1 << i << "_.png";
+		ss1  <<  "./lazer_picture/"<< i << "_.png";
 		image_name1 = ss1.str();	
 		checker_image_lazer.push_back( cv::imread(image_name1.c_str(),0) );
 
