@@ -46,7 +46,6 @@ int main(){
 
 	cv::vector<cv::Point2d> lazer_line = DetectBrightLine(gimgl);
 
-	std::cout << "yet complete" << std::endl;
 	
 
 	for(int i=0;i<gimgl.rows;i++){
@@ -76,6 +75,9 @@ int main(){
 
 	cv::namedWindow("R3");
 	imshow("R3",gimgl);
+
+
+	std::cout << "finish" << std::endl;
 
 	cv::waitKey(0);
 	
@@ -138,9 +140,8 @@ cv::vector<cv::Point2d> DetectBrightLine(cv::Mat image)
 
 	cv::vector<cv::Point2d> lazer_line ;
 	for(int i=0;i<POINTNUM;i++){
-	 lazer_line[i].x = max_num_i[i];
-	 lazer_line[i].y = max_num_j[i];
-		
+	lazer_line.push_back(cv::Point2d(max_num_i[i],max_num_j[i]));
+			
 	}
 
 
