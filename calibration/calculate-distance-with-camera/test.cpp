@@ -1,3 +1,20 @@
+
+#ifndef DEBUG
+#pragma comment(lib, "opencv_core249d.lib")
+#pragma comment(lib, "opencv_highgui249d.lib")
+#pragma comment(lib, "opencv_imgproc249d.lib")
+#pragma comment(lib, "opencv_calib3d249d.lib")
+
+
+#else
+#pragma comment(lib, "opencv_core249.lib")
+#pragma comment(lib, "opencv_highgui249.lib")
+#pragma comment(lib, "opencv_imgproc249.lib")
+#pragma comment(lib, "opencv_calib3d249.lib")
+#endif
+
+
+#include <ximea/xiApi.h>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
@@ -7,8 +24,10 @@
 #include <string>
 #include <cmath>
 
-#define IMAGE_SIZE 1
-#define LAZER_POINTS 5
+#define HandleResult(res,place) if (res!=XI_OK) {printf("Error after %s (%d)",place,res);}
+
+
+#define LAZER_POINTS 10
 #define CHESS_SIZE 21
 #define CHESS_ROW 9
 #define CHESS_COLUM 6
@@ -33,6 +52,39 @@ cv::vector<cv::Point3f> CalcDistInf(cv::Mat lazer_image,Plane plane,cv::Mat I_Ma
 
 int main( int argc, char* argv[])
 {
+
+	 // Sample for XIMEA API V2.10
+    DWORD dwNumberOfDevices = 0;
+	HANDLE xiH = NULL;
+	XI_RETURN stat = XI_OK;
+	
+	
+	
+	// image buffer
+	XI_IMG image;
+	memset(&image,0,sizeof(image));
+	image.size = sizeof(XI_IMG);
+   
+	// Retrieving number of connected cameras
+    stat = xiGetNumberDevices(&dwNumberOfDevices);
+   if(!dwNumberOfDevices) { std::cout << "error!! camera was not connected." << std::endl; }
+
+    // Retrieving a handle to the camera device 
+	stat = xiOpenDevice(0, &xiH);
+    HandleResult(stat,"xiOpenDevice");
+
+
+	// Setting "exposure" parameter (10ms)
+
+	
+	int time_us = 1000;
+	stat = xiSetParam(xiH, XI_PRM_EXPOSURE, &time_us, sizeof(time_us), xiTypeInteger);
+
+	//xiSetParamInt(xiH, XI_PRM_TRG_SOURCE, XI_TRG_EDGE_RISING);
+	// Start acquisition
+	stat = xiStartAcquisition(xiH);
+
+
 
 	//load the raw and lazer image 
 
@@ -63,16 +115,27 @@ int main( int argc, char* argv[])
 	std::cout << "plane.c : " << plane.c<< std::endl;
 	std::cout << "plane.d : " << plane.d<< std::endl;
 
-
-	//catch the image
-
-	lazer_image = cv::imread("0_.png",0);	
-
+	while(1){
 	
+	// getting image from the camera
+		cv::Mat lazer_image = cv::Mat::zeros(XI_H, XI_W, CV_8UC1);
+
+		stat = xiGetImage(xiH, time_us , &image);
+
+
+		memcpy(lazer_image.data, image.bp, image.width*image.height);
+	
+		cv::imshow("frame", lazer_image);
+
 	//calculate
 	cv::vector<cv::Point3f> location_inf = CalcDistInf(lazer_image,plane,I_Mat,D_Mat);
+		
 
 	std::cout << "location : " << location_inf << std::endl;
+			cv::waitKey(1);
+
+	}
+
 
 	return 0;
 }
@@ -81,7 +144,9 @@ int main( int argc, char* argv[])
 
 cv::vector<cv::Point3f> CalcDistInf(cv::Mat lazer_image,Plane plane,cv::Mat I_Mat,cv::Mat D_Mat){
 
-//calculate lazer points
+
+
+	//calculate lazer points
 	cv::vector<cv::Point2i> lazer_points(LAZER_POINTS);
 
 
@@ -89,8 +154,10 @@ cv::vector<cv::Point3f> CalcDistInf(cv::Mat lazer_image,Plane plane,cv::Mat I_Ma
 		cv::Mat gimg(lazer_image.size(),lazer_image.type()) ;
 		gimg = lazer_image;
 
-		cv::imshow("R",lazer_image);
-		cv::imshow("R2",gimg);
+		//cv::imshow("R",lazer_image);
+		//cv::imshow("R2",gimg);
+
+
 
 
 		int most_brightness_number[LAZER_POINTS][2];
@@ -112,7 +179,8 @@ cv::vector<cv::Point3f> CalcDistInf(cv::Mat lazer_image,Plane plane,cv::Mat I_Ma
 				//unsigned char tmp_brightness = lazer_image_lazer[i].at<uchar>(j,k);
 
 				if( tmp_brightness >= most_brightness[0] ){
-
+				
+					
 					for(int t=LAZER_POINTS-1 ;t >= 1;t--){
 						most_brightness[t] = most_brightness[t-1];	
 
@@ -121,7 +189,7 @@ cv::vector<cv::Point3f> CalcDistInf(cv::Mat lazer_image,Plane plane,cv::Mat I_Ma
 
 
 					}
-
+					
 					most_brightness_number[0][0] = j;
 					most_brightness_number[0][1] = k;
 					most_brightness[0] = tmp_brightness;
@@ -130,10 +198,9 @@ cv::vector<cv::Point3f> CalcDistInf(cv::Mat lazer_image,Plane plane,cv::Mat I_Ma
 		}
 
 		//lazer_points.push_back(light_point);
-		for(int t= LAZER_POINTS; t<  LAZER_POINTS;t++){
-			//lazer_points[t].x = t+ 5;
+		for(int t= 0; t<  LAZER_POINTS;t++){
+			//lazer_points.push_back(cv::Point2i(most_brightness_number[t][0],most_brightness_number[t][1]));
 			lazer_points[t].x = most_brightness_number[t][0];
-			//lazer_points[t].y = t;
 			lazer_points[t].y = most_brightness_number[t][1];
 		}
 
@@ -169,14 +236,46 @@ cv::vector<cv::Point3f> CalcDistInf(cv::Mat lazer_image,Plane plane,cv::Mat I_Ma
 
 		location_inf.push_back(cv::Point3f(location_x,location_y,location_z) );
 
-
 	}
+
+	/*
+	for(int i=0;i<gimg.rows;i++){
+		//for(int j=0;j<648*3-100;j++){
+		for(int j=0;j<gimg.step;j++){
+
+			//for(int i=0;i<300;i++){
+			int check=0;
+				
+			   for(int k=0;k<LAZER_POINTS ;k++){
+			   if( i == lazer_points[k].x && j == lazer_points[k].y) 
+			//if( i < max_num_i[i] +squ &&  i > max_num_i[i] -squ  && (j < squ+ max_num_j[i] && j >max_num_j[i]-squ ))
+				check++;
+			}
+			 		
+			   if(check > 0){
+
+			   //gimgl.at<uchar>(i,j) = 255;
+
+			   gimg.data[i*gimg.step+ j] =  255;
+		
+
+			   }
+
+			   else
+			   gimg.data[i*gimg.step+ j] =  0;
+			
+	
+			//gimgl.data[i*gimgl.cols + 
+		   //gimgl(i,j) = 100;
+			   //gimgl.data[i*gimgl.cols+ j] +=  100;
+			   //gimgl.at<uchar>(i,j) += 100;
+		}
+	}
+
+	cv::imshow("R4",gimg);
+	*/
+
+	
 
 	return location_inf;
 }
-
-
-
-
-
-
