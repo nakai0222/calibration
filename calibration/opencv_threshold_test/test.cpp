@@ -10,45 +10,82 @@
 #define XI_H 488
 
 
+#define POINTNUM 10
+
+cv::vector<cv::Point2d> DetectBrightLine(cv::Mat image);
+
+
 
 int main(){
 
 
 	int thr = 150;
-	int BGR = 1;
-	//cv::Mat_<unsigned char> cimgl(XI_W,XI_H);
-	//cv::Mat cimgl;
+
+
 	cv::Mat cimgl(XI_H,XI_W,CV_8UC1);
-	//cv::Mat_<unsigned char> gimgl(XI_H,XI_W,CV_8UC1);
-	//cv::Mat_<uchar> gimgl;
+
 	cv::Mat gimgl(cimgl.size(),cimgl.type());
 
 
 
-	cv::Mat split_imgl[3];//={cv::Mat(XI_H, XI_W, CV_8UC1)};
+	cv::Mat split_imgl[3];
 
 	std::stringstream ss;
 	ss << "4_.png";
-	//ss << "imgl00.png";
 	std::string filename = ss.str();
 
 	cimgl = cv::imread(filename.c_str(),0);
-	//cimgl = cv::imread(filename.c_str(),CV_LOAD_IMAGE_COLOR);
-	//cv::threshold(cimgl,gimgl,thr,0,cv::THRESH_TOZERO);
 	gimgl = cimgl;
 
 
 	cv::imshow("R",gimgl);
 	cv::imshow("R2",cimgl);
-	//cv::imshow("R4",split_imgl[0]);
 	std::cout << "gimgl.row" << gimgl.rows << std::endl;
 	std::cout << "gimgl.cols" << gimgl.cols << std::endl;
 
 
-	//std::cout << cimgl << std::endl;
-	cv::waitKey(0);
+	cv::vector<cv::Point2d> lazer_line = DetectBrightLine(gimgl);
 
-	#define POINTNUM 20
+	std::cout << "yet complete" << std::endl;
+	
+
+	for(int i=0;i<gimgl.rows;i++){
+		for(int j=0;j<gimgl.step;j++){
+
+			int check=0;
+				
+			   for(int k=0;k<POINTNUM ;k++){
+			   if( i == lazer_line[k].x && j == lazer_line[k].y) 
+				check++;
+			}
+			 		
+			   if(check > 0){
+
+
+			   gimgl.data[i*gimgl.step+ j] =  255;
+		
+
+			   }
+
+			   else
+			   gimgl.data[i*gimgl.step+ j] =  0;
+			
+	
+		}
+	}
+
+	cv::namedWindow("R3");
+	imshow("R3",gimgl);
+
+	cv::waitKey(0);
+	
+}
+
+
+
+cv::vector<cv::Point2d> DetectBrightLine(cv::Mat image)
+{
+
 
 	int max[POINTNUM] ;
 	int max_num[POINTNUM];
@@ -58,28 +95,11 @@ int main(){
 
 	int count =0;
 
-
-/*
-
-	for(int i=0;i<gimgl.rows;i++){	
-		for(int j=0;j<gimgl.step;j++){
-			//unsigned char pixel = gimgl.at<uchar>(i,j);
-			//gimgl.data[j] += 100; 
-			 //std::cout <<  "data : "<< (gimgl.data[i*gimgl.step+j]) <<std::endl;
-			 std::cout <<  "data : "<< static_cast<int>(gimgl.data[i*gimgl.step+j]) <<std::endl;
-		}
-		}
-
-			 std::cout <<  "c data : "<< (cimgl.data[0]) <<std::endl;
-*/	
-	for(int i=0;i<gimgl.rows;i++){
-		for(int j=0;j<gimgl.step;j++){
-			//unsigned char pixel = gimgl.at<uchar>(i,j);
-			int pixel = cv::saturate_cast<int>(gimgl.data[i*gimgl.step+j]);
-			//int pixel = static_cast<int>(gimgl.data[i*gimgl.step+j]);
-			//int pixel = gimgl(i,j);
-
-			if( pixel >=  max[0] ){
+	
+	for(int i=0;i<image.rows;i++){
+		for(int j=0;j<image.step;j++){
+			int pixel = cv::saturate_cast<int>(image.data[i*image.step+j]);
+				if( pixel >=  max[0] ){
 
 
 				std::cout << pixel << std::endl;
@@ -115,53 +135,17 @@ int main(){
 	std::cout << "max3 : "<< max_num_i[3] << std::endl;
 	std::cout << max_num_j[3]<< std::endl;
 
+
+	cv::vector<cv::Point2d> lazer_line ;
 	for(int i=0;i<POINTNUM;i++){
-	std::cout << max[i] << std::endl;	
-	}
-
-
-	for(int i=0;i<gimgl.rows;i++){
-		//for(int j=0;j<648*3-100;j++){
-		for(int j=0;j<gimgl.step;j++){
-
-			//for(int i=0;i<300;i++){
-			int check=0;
-				
-			   for(int k=0;k<POINTNUM ;k++){
-			   if( i == max_num_i[k] && j == max_num_j[k]) 
-			//if( i < max_num_i[i] +squ &&  i > max_num_i[i] -squ  && (j < squ+ max_num_j[i] && j >max_num_j[i]-squ ))
-				check++;
-			}
-			 		
-			   if(check > 0){
-
-			   //gimgl.at<uchar>(i,j) = 255;
-
-			   gimgl.data[i*gimgl.step+ j] =  255;
+	 lazer_line[i].x = max_num_i[i];
+	 lazer_line[i].y = max_num_j[i];
 		
-
-			   }
-
-			   else
-			   gimgl.data[i*gimgl.step+ j] =  0;
-			
-	
-			//gimgl.data[i*gimgl.cols + 
-		   //gimgl(i,j) = 100;
-			   //gimgl.data[i*gimgl.cols+ j] +=  100;
-			   //gimgl.at<uchar>(i,j) += 100;
-		}
 	}
 
-	std::cout << "step: "<<  gimgl.step << std::endl;
-	std::cout << "elemSize: "<< gimgl.elemSize()<< std::endl;
-	std::cout << "channels: "<< gimgl.channels()<< std::endl;
 
+	return lazer_line;
 
-	//gimgl = cv::Scalar(100);
-	cv::namedWindow("R3");
-	imshow("R3",gimgl);
-
-	cv::waitKey(0);
-	
 }
+
+
