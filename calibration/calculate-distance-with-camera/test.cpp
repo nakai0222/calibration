@@ -38,10 +38,10 @@
 
 class Plane{
 	public:
-	double a;
-	double b;
-	double c;
-	double d;
+		double a;
+		double b;
+		double c;
+		double d;
 
 };
 
@@ -53,49 +53,44 @@ cv::vector<cv::Point3f> CalcDistInf(cv::Mat lazer_image,Plane plane,cv::Mat I_Ma
 int main( int argc, char* argv[])
 {
 
-	 // Sample for XIMEA API V2.10
-    DWORD dwNumberOfDevices = 0;
+	// Sample for XIMEA API V2.10
+	DWORD dwNumberOfDevices = 0;
 	HANDLE xiH = NULL;
 	XI_RETURN stat = XI_OK;
-	
-	
-	
+
+
+
 	// image buffer
 	XI_IMG image;
 	memset(&image,0,sizeof(image));
 	image.size = sizeof(XI_IMG);
-   
-	// Retrieving number of connected cameras
-    stat = xiGetNumberDevices(&dwNumberOfDevices);
-   if(!dwNumberOfDevices) { std::cout << "error!! camera was not connected." << std::endl; }
 
-    // Retrieving a handle to the camera device 
+	// Retrieving number of connected cameras
+	stat = xiGetNumberDevices(&dwNumberOfDevices);
+	if(!dwNumberOfDevices) { std::cout << "error!! camera was not connected." << std::endl; }
+
+	// Retrieving a handle to the camera device 
 	stat = xiOpenDevice(0, &xiH);
-    HandleResult(stat,"xiOpenDevice");
+	HandleResult(stat,"xiOpenDevice");
 
 
 	// Setting "exposure" parameter (10ms)
 
-	
 	int time_us = 1000;
 	stat = xiSetParam(xiH, XI_PRM_EXPOSURE, &time_us, sizeof(time_us), xiTypeInteger);
 
-	//xiSetParamInt(xiH, XI_PRM_TRG_SOURCE, XI_TRG_EDGE_RISING);
 	// Start acquisition
 	stat = xiStartAcquisition(xiH);
 
 
 
 	//load the raw and lazer image 
-
 	cv::Mat lazer_image;
-	//cv::vector<cv::Mat> lazer_image;
 
 	/*load inside and outside parameter at camera*/
 	cv::Mat I_Mat ; 
 	cv::Mat D_Mat ;
 	cv::FileStorage fs("camera.xml",CV_STORAGE_READ);
-	//cv::FileStorage fs("camera.xml",cv::FileStorage::READ);
 
 	fs["intrinsicMat"] >> I_Mat;
 	fs["distCoeffs"] >> D_Mat;
@@ -104,7 +99,6 @@ int main( int argc, char* argv[])
 	Plane plane;
 
 	cv::FileStorage fs_projector("projector.xml",CV_STORAGE_READ);
-	//cv::FileStorage fs("camera.xml",cv::FileStorage::READ);
 
 	fs_projector["plane_a"] >>plane.a; 
 	fs_projector["plane_b"] >>plane.b; 
@@ -116,23 +110,23 @@ int main( int argc, char* argv[])
 	std::cout << "plane.d : " << plane.d<< std::endl;
 
 	while(1){
-	
-	// getting image from the camera
+
+		// getting image from the camera
 		cv::Mat lazer_image = cv::Mat::zeros(XI_H, XI_W, CV_8UC1);
 
 		stat = xiGetImage(xiH, time_us , &image);
 
 
 		memcpy(lazer_image.data, image.bp, image.width*image.height);
-	
+
 		cv::imshow("frame", lazer_image);
 
-	//calculate
-	cv::vector<cv::Point3f> location_inf = CalcDistInf(lazer_image,plane,I_Mat,D_Mat);
-		
+		//calculate
+		cv::vector<cv::Point3f> location_inf = CalcDistInf(lazer_image,plane,I_Mat,D_Mat);
 
-	std::cout << "location : " << location_inf << std::endl;
-			cv::waitKey(1);
+
+		std::cout << "location : " << location_inf << std::endl;
+		cv::waitKey(1);
 
 	}
 
@@ -151,60 +145,52 @@ cv::vector<cv::Point3f> CalcDistInf(cv::Mat lazer_image,Plane plane,cv::Mat I_Ma
 
 
 
-		cv::Mat gimg(lazer_image.size(),lazer_image.type()) ;
-		gimg = lazer_image;
-
-		//cv::imshow("R",lazer_image);
-		//cv::imshow("R2",gimg);
+	cv::Mat gimg(lazer_image.size(),lazer_image.type()) ;
+	gimg = lazer_image;
 
 
 
-
-		int most_brightness_number[LAZER_POINTS][2];
-		int most_brightness[LAZER_POINTS];
-
-
-		for(int i=0;i<LAZER_POINTS;i++){
-			most_brightness[i]=0;
-			most_brightness_number[i][0]=0;
-			most_brightness_number[i][1]=0;
-		}	
+	int most_brightness_number[LAZER_POINTS][2];
+	int most_brightness[LAZER_POINTS];
 
 
-		for(int j=0;j<gimg.rows;j++){
-			for(int k=0;k<gimg.step;k++){
-
-				//unsigned char tmp_brightness = gimg.at<uchar>(j,k);
-				int tmp_brightness = cv::saturate_cast<int>(gimg.data[j*gimg.step+k]);
-				//unsigned char tmp_brightness = lazer_image_lazer[i].at<uchar>(j,k);
-
-				if( tmp_brightness >= most_brightness[0] ){
-				
-					
-					for(int t=LAZER_POINTS-1 ;t >= 1;t--){
-						most_brightness[t] = most_brightness[t-1];	
-
-						most_brightness_number[t][0] =most_brightness_number[t-1][0];
-						most_brightness_number[t][1] =most_brightness_number[t-1][1];
+	for(int i=0;i<LAZER_POINTS;i++){
+		most_brightness[i]=0;
+		most_brightness_number[i][0]=0;
+		most_brightness_number[i][1]=0;
+	}	
 
 
-					}
-					
-					most_brightness_number[0][0] = j;
-					most_brightness_number[0][1] = k;
-					most_brightness[0] = tmp_brightness;
-				}	
-			}
+	for(int j=0;j<gimg.rows;j++){
+		for(int k=0;k<gimg.step;k++){
+
+			int tmp_brightness = cv::saturate_cast<int>(gimg.data[j*gimg.step+k]);
+
+			if( tmp_brightness >= most_brightness[0] ){
+
+
+				for(int t=LAZER_POINTS-1 ;t >= 1;t--){
+					most_brightness[t] = most_brightness[t-1];	
+
+					most_brightness_number[t][0] =most_brightness_number[t-1][0];
+					most_brightness_number[t][1] =most_brightness_number[t-1][1];
+
+
+				}
+
+				most_brightness_number[0][0] = j;
+				most_brightness_number[0][1] = k;
+				most_brightness[0] = tmp_brightness;
+			}	
 		}
+	}
 
-		//lazer_points.push_back(light_point);
-		for(int t= 0; t<  LAZER_POINTS;t++){
-			//lazer_points.push_back(cv::Point2i(most_brightness_number[t][0],most_brightness_number[t][1]));
-			lazer_points[t].x = most_brightness_number[t][0];
-			lazer_points[t].y = most_brightness_number[t][1];
-		}
+	for(int t= 0; t<  LAZER_POINTS;t++){
+		lazer_points[t].x = most_brightness_number[t][0];
+		lazer_points[t].y = most_brightness_number[t][1];
+	}
 
-		
+
 
 	//calculate location information
 	cv::vector<cv::Point3f> location_inf;
@@ -226,56 +212,45 @@ cv::vector<cv::Point3f> CalcDistInf(cv::Mat lazer_image,Plane plane,cv::Mat I_Ma
 
 
 		double location_z = ( l / (std::tan(sita) - ( ((lazer_points[i].x - u0) - (ganma/beta    ) * (lazer_points[i].y - v0) ) / alfa ) + std::tan(fai)*(lazer_points[i].y - v0)/beta ) );
-		//location_inf.z = ( l / (std::tan(sita) - ( ((lazer_points[i].x - u0) - (ganma/beta    ) * (lazer_points[i].y - v0) ) / alfa ) + std::tan(fai)*(lazer_points[i].y - v0)/beta ) );
 
 		double location_x = ( ( (lazer_points[i].x - u0) - (ganma/beta)*(lazer_points[i].y - v0) ) / alfa )*location_z;
-		//location_inf.x = ( ( (lazer_points[i].x - u0) - (ganma/beta)*(lazer_points[i].y - v0) ) / alfa )*location_inf.z;
 
 		double location_y = ( (lazer_points[i].y - v0) /beta) * location_z;
-		//location_inf.y = ( (lazer_points[i].y - v0) /beta) * location_inf.z;
 
 		location_inf.push_back(cv::Point3f(location_x,location_y,location_z) );
 
 	}
 
 	/*
-	for(int i=0;i<gimg.rows;i++){
-		//for(int j=0;j<648*3-100;j++){
-		for(int j=0;j<gimg.step;j++){
+	   for(int i=0;i<gimg.rows;i++){
+	   for(int j=0;j<gimg.step;j++){
 
-			//for(int i=0;i<300;i++){
-			int check=0;
-				
-			   for(int k=0;k<LAZER_POINTS ;k++){
-			   if( i == lazer_points[k].x && j == lazer_points[k].y) 
-			//if( i < max_num_i[i] +squ &&  i > max_num_i[i] -squ  && (j < squ+ max_num_j[i] && j >max_num_j[i]-squ ))
-				check++;
-			}
-			 		
-			   if(check > 0){
+	   int check=0;
 
-			   //gimgl.at<uchar>(i,j) = 255;
+	   for(int k=0;k<LAZER_POINTS ;k++){
+	   if( i == lazer_points[k].x && j == lazer_points[k].y) 
+	   check++;
+	   }
 
-			   gimg.data[i*gimg.step+ j] =  255;
-		
+	   if(check > 0){
 
-			   }
 
-			   else
-			   gimg.data[i*gimg.step+ j] =  0;
-			
-	
-			//gimgl.data[i*gimgl.cols + 
-		   //gimgl(i,j) = 100;
-			   //gimgl.data[i*gimgl.cols+ j] +=  100;
-			   //gimgl.at<uchar>(i,j) += 100;
-		}
-	}
+	   gimg.data[i*gimg.step+ j] =  255;
 
-	cv::imshow("R4",gimg);
-	*/
 
-	
+	   }
+
+	   else
+	   gimg.data[i*gimg.step+ j] =  0;
+
+
+	   }
+	   }
+
+	   cv::imshow("R4",gimg);
+	 */
+
+
 
 	return location_inf;
 }
