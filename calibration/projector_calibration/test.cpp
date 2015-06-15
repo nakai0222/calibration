@@ -20,6 +20,9 @@
 #define XI_H 488
 
 
+
+
+
 int main( int argc, char* argv[])
 {
 
@@ -63,7 +66,6 @@ int main( int argc, char* argv[])
 	cv::Mat I_Mat ; 
 	cv::Mat D_Mat ;
 	cv::FileStorage fs("camera.xml",CV_STORAGE_READ);
-	//cv::FileStorage fs("camera.xml",cv::FileStorage::READ);
 
 	fs["intrinsicMat"] >> I_Mat;
 	fs["distCoeffs"] >> D_Mat;
@@ -130,31 +132,16 @@ int main( int argc, char* argv[])
 
 	//calculate lazer points
 	cv::vector<cv::Point2i> lazer_points(POINTS_FOR_ONEIMAGE*IMAGE_SIZE);
-	//int thr = 85;
-	//int BGR = 0;
-	//cv::Mat split_imgl[3];
 
-	//split color image
 	for(int i=0;i<IMAGE_SIZE;i++){
 
 		cv::Mat gimg(checker_image_lazer[i].size(),checker_image_lazer[i].type()) ;
 		gimg = checker_image_lazer[i];
 
-		//std::cout <<  "gimg.step : "<< gimg.step << std::endl;
-		//std::cout <<  "gimg.channel: "<< gimg.channels()<< std::endl;
-
-		//cv::split(checker_image_lazer[i],split_imgl);
-		//cv::threshold(checker_image_lazer[i],gimg,thr,0,cv::THRESH_TOZERO);
-		//cv::threshold(split_imgl[BGR],checker_image_lazer[i],thr,0,cv::THRESH_TOZERO);
 		cv::imshow("R",checker_image_lazer[i]);
 		cv::imshow("R2",gimg);
 
-		//cv::imshow("r",split_imgl[BGR]);
-
 		cv::waitKey(0);
-
-		//checker_image_lazer[i] = split_imgl[BGR];	
-		//gimg = split_imgl[BGR];	
 
 		int most_brightness_number[POINTS_FOR_ONEIMAGE][2];
 		int most_brightness[POINTS_FOR_ONEIMAGE];
@@ -165,7 +152,6 @@ int main( int argc, char* argv[])
 			most_brightness_number[i][0]=0;
 			most_brightness_number[i][1]=0;
 		}	
-
 
 		for(int j=0;j<gimg.rows;j++){
 			for(int k=0;k<gimg.step;k++){
@@ -191,11 +177,6 @@ int main( int argc, char* argv[])
 				}	
 			}
 		}
-
-
-		//std::cout << "x : " << most_brightness_number[0] << std::endl;
-		//std::cout << "y : " << most_brightness_number[1] << std::endl;
-		//cv::Point2f light_point(most_brightness_number[0],most_brightness_number[1]);
 
 		//lazer_points.push_back(light_point);
 		for(int t= i*POINTS_FOR_ONEIMAGE ; t< (i+1) *POINTS_FOR_ONEIMAGE;t++){
@@ -275,7 +256,7 @@ int main( int argc, char* argv[])
 	int x_y_sum =0;
 	int x_z_sum =0;
 	int y_z_sum =0;
-	
+
 
 	for(int i=0;i<IMAGE_SIZE*POINTS_FOR_ONEIMAGE;i++){
 
@@ -290,10 +271,10 @@ int main( int argc, char* argv[])
 		x_y_sum += camera_points[i].x*camera_points[i].y;
 		x_z_sum += camera_points[i].x*camera_points[i].z;
 		y_z_sum += camera_points[i].y*camera_points[i].z;
-	
+
 	}
 
-	
+
 	std::cout << "x_sum : " << x_sum<< std::endl;
 	std::cout << "y_sum : " << y_sum<< std::endl;
 	std::cout << "z_sum : " << z_sum<< std::endl;
@@ -312,7 +293,7 @@ int main( int argc, char* argv[])
 	std::cout << "M : " << M<< std::endl;
 	std::cout << "M_inv : " << M.inv() << std::endl;
 	std::cout << "u : " << u<< std::endl;
-	
+
 
 
 	cv::Mat projector_parametter;  
@@ -334,7 +315,7 @@ int main( int argc, char* argv[])
 	std::cout << "plane_c : " << plane_c << std::endl;
 	std::cout << "plane_d : " << plane_d << std::endl;
 
-		
+
 	//output file 
 	cv::FileStorage fs_projector("projector.xml",cv::FileStorage::WRITE);
 	fs_projector << "plane_a" << plane_a ;
@@ -342,11 +323,13 @@ int main( int argc, char* argv[])
 	fs_projector << "plane_c" << plane_c ;
 	fs_projector << "plane_d" << plane_d ;
 	//fs_projector << "plane_d" << projector_parameter.data[3]; 
-		
+
 
 	return 0;
 
 
 }
+
+
 
 

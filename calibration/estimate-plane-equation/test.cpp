@@ -7,7 +7,6 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-//#include <math.h>
 #include <cmath>
 
 int main( int argc, char* argv[])
@@ -38,10 +37,8 @@ int main( int argc, char* argv[])
 	std::cout << "z_sum : " << z_sum<< std::endl;
 
 	cv::Mat M = (cv::Mat_<double>(3,3) << x_sum_2,x_y_sum,x_sum,x_y_sum,y_sum_2,y_sum,x_sum,y_sum,3);
-	//cv::Mat M = (cv::Mat_<double>(3,3) << 3 ,x_sum,y_sum,x_sum,x_sum_2,x_sum*y_sum,y_sum,x_sum*y_sum,y_sum_2);
 
 	cv::Mat u = (cv::Mat_<double>(3,1)<< x_z_sum,y_z_sum, z_sum);
-	//cv::Mat u = (cv::Mat_<double>(3,1)<< z_sum ,x_sum*z_sum , y_sum*z_sum);
 
 
 	std::cout << "M : " << M<< std::endl;
@@ -53,9 +50,7 @@ int main( int argc, char* argv[])
 
 	std::cout << "projector_parametter : " << projector_parametter << std::endl;
 	std::cout << "projector_parametter.data[0] : " << cv::saturate_cast<double>(projector_parametter.at<double>(0,0) ) << std::endl;
-	//std::cout << "projector_parametter.data[0] : " << cv::saturate_cast<double>(projector_parametter.data[0]) << std::endl;
 
-	//ax+by+cz+d = 0
 	std::cout << "sqrt(4): " << sqrt(4.0) << std::endl;
 	double plane_c = 1/sqrt(projector_parametter.at<double>(0,0)*projector_parametter.at<double>(0,0) + projector_parametter.at<double>(1,0)*projector_parametter.at<double>(1,0) + 1);
 	double plane_a = -projector_parametter.at<double>(0,0)*plane_c;
@@ -69,7 +64,6 @@ int main( int argc, char* argv[])
 	std::cout << "plane_d : " << plane_d << std::endl;
 
 	return 0;
-
 
 }
 
