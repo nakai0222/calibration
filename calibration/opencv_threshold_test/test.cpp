@@ -15,20 +15,11 @@
 cv::vector<cv::Point2d> DetectBrightLine(cv::Mat image);
 
 
-
 int main(){
-
-
-	int thr = 150;
-
 
 	cv::Mat cimgl(XI_H,XI_W,CV_8UC1);
 
 	cv::Mat gimgl(cimgl.size(),cimgl.type());
-
-
-
-	cv::Mat split_imgl[3];
 
 	std::stringstream ss;
 	ss << "4_.png";
@@ -37,16 +28,11 @@ int main(){
 	cimgl = cv::imread(filename.c_str(),0);
 	gimgl = cimgl;
 
-
 	cv::imshow("R",gimgl);
 	cv::imshow("R2",cimgl);
-	std::cout << "gimgl.row" << gimgl.rows << std::endl;
-	std::cout << "gimgl.cols" << gimgl.cols << std::endl;
-
 
 	cv::vector<cv::Point2d> lazer_line = DetectBrightLine(gimgl);
 
-	
 
 	for(int i=0;i<gimgl.rows;i++){
 		for(int j=0;j<gimgl.step;j++){
@@ -68,7 +54,6 @@ int main(){
 
 			   else
 			   gimgl.data[i*gimgl.step+ j] =  0;
-			
 	
 		}
 	}
@@ -94,9 +79,7 @@ cv::vector<cv::Point2d> DetectBrightLine(cv::Mat image)
 	int max_num_i[POINTNUM];
 	int max_num_j[POINTNUM];	
 
-
 	int count =0;
-
 	
 	for(int i=0;i<image.rows;i++){
 		for(int j=0;j<image.step;j++){
@@ -118,25 +101,9 @@ cv::vector<cv::Point2d> DetectBrightLine(cv::Mat image)
 				max_num_j[0] = j;
 
 				count++;
-
 			}	
 		}
 	}
-
-
-	std::cout <<  "max change number:  "<< count << std::endl;
-	std::cout << "max 0 : "<< max_num_i[0] << std::endl;
-	std::cout << max_num_j[0]<< std::endl;
-
-	std::cout << "max1 : "<<  max_num_i[1] << std::endl;
-	std::cout << max_num_j[1]<< std::endl;
-
-	std::cout <<  "max2 : "<< max_num_i[2] << std::endl;
-	std::cout <<  max_num_j[2]<< std::endl;
-
-	std::cout << "max3 : "<< max_num_i[3] << std::endl;
-	std::cout << max_num_j[3]<< std::endl;
-
 
 	cv::vector<cv::Point2d> lazer_line ;
 	for(int i=0;i<POINTNUM;i++){
@@ -144,9 +111,7 @@ cv::vector<cv::Point2d> DetectBrightLine(cv::Mat image)
 			
 	}
 
-
 	return lazer_line;
-
 }
 
 
