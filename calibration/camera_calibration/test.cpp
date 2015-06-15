@@ -8,7 +8,7 @@
 #include <string>
 
 
-#define IMAGE_SIZE 21
+#define IMAGE_SIZE 30 
 #define CHESS_SIZE 21
 #define CHESS_ROW 9
 #define CHESS_COLUM 6
