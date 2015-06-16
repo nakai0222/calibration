@@ -1,5 +1,3 @@
-
-
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
@@ -20,9 +18,6 @@
 #define XI_H 488
 
 
-
-
-
 int main( int argc, char* argv[])
 {
 
@@ -31,37 +26,7 @@ int main( int argc, char* argv[])
 	cv::vector<cv::Mat> checker_image;
 	//cv::vector<cv::Mat> checker_image(XI_H,XI_W,CV_8UC1);
 	cv::vector<cv::Mat> checker_image_lazer;
-	//cv::vector<cv::Mat> checker_image_lazer(XI_H,XI_W,CV_8UC1);
-
-	for(int i=0;i<IMAGE_SIZE;i++)
-	{
-
-		//load images
-		std::stringstream ss;
-		std::string image_name;
-		ss <<  "./lazer_picture/"<<  i << ".png";
-		image_name = ss.str();	
-		checker_image.push_back( cv::imread(image_name.c_str(),0) );
-
-
-		std::stringstream ss1;
-		std::string image_name1;
-		ss1  <<  "./lazer_picture/"<< i << "_.png";
-		image_name1 = ss1.str();	
-		checker_image_lazer.push_back( cv::imread(image_name1.c_str(),0) );
-
-	}
-
-	//number of intersection point 
-	cv::Size checker_pattern_size(CHESS_ROW,CHESS_COLUM);
-	//image points
-	cv::vector< cv::vector<cv::Point2f> > image_points(IMAGE_SIZE);
-	//world points
-	cv::vector< cv::vector<cv::Point3f> > world_points(IMAGE_SIZE);
-	//world coordinate pattern 
-	cv::TermCriteria criteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS,20,0.001);
-
-
+	
 	/*read inside and outside parameter at camera*/
 	cv::Mat I_Mat ; 
 	cv::Mat D_Mat ;
@@ -73,6 +38,42 @@ int main( int argc, char* argv[])
 
 	std::cout << "inner parameter: " << I_Mat << std::endl;
 	std::cout << "distCoeffs: " << D_Mat << std::endl;
+
+
+	for(int i=0;i<IMAGE_SIZE;i++)
+	{
+
+		//load images
+		std::stringstream ss;
+		std::string image_name;
+		ss <<  "./lazer_picture/"<<  i << ".png";
+		image_name = ss.str();
+		cv::Mat image = cv::imread(image_name.c_str(),0);
+		cv::Mat undistort;
+		cv::undistort(image,undistort,I_Mat,D_Mat);			
+		checker_image.push_back(undistort);
+		//checker_image.push_back(cv::imread(image_name.c_str(),0));
+
+
+		std::stringstream ss1;
+		std::string image_name1;
+		ss1  <<  "./lazer_picture/"<< i << "_.png";
+		image_name1 = ss1.str();
+		cv::Mat image_l =  cv::imread(image_name1.c_str(),0);	
+		cv::Mat undistort_l;
+		cv::undistort(image_l,undistort_l,I_Mat,D_Mat);			
+		checker_image_lazer.push_back(undistort_l);
+		//checker_image.push_back(cv::imread(image_name1.c_str(),0));
+	}
+
+	//number of intersection point 
+	cv::Size checker_pattern_size(CHESS_ROW,CHESS_COLUM);
+	//image points
+	cv::vector< cv::vector<cv::Point2f> > image_points(IMAGE_SIZE);
+	//world points
+	cv::vector< cv::vector<cv::Point3f> > world_points(IMAGE_SIZE);
+	//world coordinate pattern 
+	cv::TermCriteria criteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS,20,0.001);
 
 
 	cv::vector<cv::Mat> rotations;
@@ -115,7 +116,8 @@ int main( int argc, char* argv[])
 	for(int i=0;i<IMAGE_SIZE;i++){
 		cv::Mat tmp_rotation;
 		cv::Mat tmp_translation;
-		cv::solvePnP(world_points[i],image_points[i],I_Mat,D_Mat,tmp_rotation,tmp_translation);
+		cv::Mat dammy;
+		cv::solvePnP(world_points[i],image_points[i],I_Mat,dammy,tmp_rotation,tmp_translation);
 		rotations.push_back(tmp_rotation);
 		translations.push_back(tmp_translation);	
 	}
@@ -324,12 +326,6 @@ int main( int argc, char* argv[])
 	fs_projector << "plane_d" << plane_d ;
 	//fs_projector << "plane_d" << projector_parameter.data[3]; 
 
-
 	return 0;
 
-
 }
-
-
-
-
