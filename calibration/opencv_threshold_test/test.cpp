@@ -11,6 +11,8 @@
 
 
 #define POINTNUM 10
+#define PIXEL_INTERVAL 4
+
 
 cv::vector<cv::Point2d> DetectBrightLine(cv::Mat image);
 
@@ -80,30 +82,40 @@ cv::vector<cv::Point2d> DetectBrightLine(cv::Mat image)
 	int max_num_j[POINTNUM];	
 
 	int count =0;
+
+	cv::Mat output_image(image.size(),image.type());
+
+	cv::Mat patch  = (cv::Mat_<double>(3,9) << 1,1,0,0,0,0,0,1,1,0,0,1,1,1,1,1,0,0,1,1,0,0,0,0,0,1,1);
+
+
+
 	
-	for(int i=0;i<image.rows;i++){
-		for(int j=0;j<image.step;j++){
-			int pixel = cv::saturate_cast<int>(image.data[i*image.step+j]);
-				if( pixel >=  max[0] ){
+	for(int i=1;i<image.rows-1;i++){
+	//for(int i=0;i<image.rows;i++){
+		for(int j=4;j<image.step-4;j++){
+			//int pixel = cv::saturate_cast<int>(image.data[i*image.step+j]);
+
+		output_image.data[i*image.step+j]  = 0;
+
+	
+	//if(i >= 1 && i <= image.rows-1 && j >= 4 && j <= image.cols-4 )
+	//[-1,2),(-4,5]
+	cv::Mat image_cut = image(cv::Rect(j-4,i-1,patch.cols,patch.rows));
+	image_cut.convertTo(image_cut,CV_64FC1);
+		
+	cv::Mat tmp = patch.mul(image_cut);
+
+	for(int k=0;k<tmp.cols*tmp.rows;k++){	
+		output_image.data[i*image.step+j]  += tmp.data[k];
+		}
 
 
-				std::cout << pixel << std::endl;
-
-				for(int k=POINTNUM-1;k >= 1;k--){
-					max[k] = max[k-1];	
-					max_num[k] = max_num[k-1];
-					max_num_i[k] = max_num_i[k-1];
-					max_num_j[k] = max_num_j[k-1];
-				}
-
-				max[0] = pixel;
-				max_num_i[0] = i;
-				max_num_j[0] = j;
-
-				count++;
-			}	
+	
 		}
 	}
+
+	imshow("sa",output_image);
+
 
 	cv::vector<cv::Point2d> lazer_line ;
 	for(int i=0;i<POINTNUM;i++){
