@@ -75,7 +75,6 @@ int main( int argc, char* argv[])
 	//world coordinate pattern 
 	cv::TermCriteria criteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS,20,0.001);
 
-
 	cv::vector<cv::Mat> rotations;
 	cv::vector<cv::Mat> translations;
 
