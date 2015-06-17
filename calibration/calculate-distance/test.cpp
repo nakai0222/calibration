@@ -16,6 +16,9 @@
 #define XI_W 648
 #define XI_H 488
 
+
+
+
 int main( int argc, char* argv[])
 {
 
@@ -70,49 +73,9 @@ int main( int argc, char* argv[])
 
 	for(int i=0;i<IMAGE_SIZE;i++){
 
-		cv::Mat gimg(lazer_image[i].size(),lazer_image[i].type()) ;
-		gimg = lazer_image[i];
-
-		cv::imshow("R",lazer_image[i]);
-		cv::imshow("R2",gimg);
 
 
-		int most_brightness_number[LAZER_POINTS][2];
-		int most_brightness[LAZER_POINTS];
-
-
-		for(int i=0;i<LAZER_POINTS;i++){
-			most_brightness[i]=0;
-			most_brightness_number[i][0]=0;
-			most_brightness_number[i][1]=0;
-		}	
-
-
-		for(int j=0;j<gimg.rows;j++){
-			for(int k=0;k<gimg.step;k++){
-
-				//unsigned char tmp_brightness = gimg.at<uchar>(j,k);
-				int tmp_brightness = cv::saturate_cast<int>(gimg.data[j*gimg.step+k]);
-				//unsigned char tmp_brightness = lazer_image_lazer[i].at<uchar>(j,k);
-
-				if( tmp_brightness >= most_brightness[0] ){
-
-					for(int t=LAZER_POINTS-1 ;t >= 1;t--){
-						most_brightness[t] = most_brightness[t-1];	
-
-						most_brightness_number[t][0] =most_brightness_number[t-1][0];
-						most_brightness_number[t][1] =most_brightness_number[t-1][1];
-
-
-					}
-
-					most_brightness_number[0][0] = j;
-					most_brightness_number[0][1] = k;
-					most_brightness[0] = tmp_brightness;
-				}	
-			}
-		}
-
+	}
 		cv::Mat gimgl(lazer_image[i].size(),lazer_image[i].type()) ;
 		gimgl = lazer_image[i];
 
