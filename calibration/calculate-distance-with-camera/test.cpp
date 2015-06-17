@@ -144,22 +144,17 @@ cv::vector<cv::Point3f> CalcDistInf(cv::Mat lazer_image,Plane plane,cv::Mat I_Ma
 	cv::vector<cv::Point2i> lazer_points(LAZER_POINTS);
 
 
-
 	cv::Mat gimg(lazer_image.size(),lazer_image.type()) ;
 	gimg = lazer_image;
 
-
-
 	int most_brightness_number[LAZER_POINTS][2];
 	int most_brightness[LAZER_POINTS];
-
 
 	for(int i=0;i<LAZER_POINTS;i++){
 		most_brightness[i]=0;
 		most_brightness_number[i][0]=0;
 		most_brightness_number[i][1]=0;
 	}	
-
 
 	for(int j=0;j<gimg.rows;j++){
 		for(int k=0;k<gimg.step;k++){
@@ -190,11 +185,8 @@ cv::vector<cv::Point3f> CalcDistInf(cv::Mat lazer_image,Plane plane,cv::Mat I_Ma
 		lazer_points[t].y = most_brightness_number[t][1];
 	}
 
-
-
 	//calculate location information
 	cv::vector<cv::Point3f> location_inf;
-
 
 	double l = plane.d/plane.a;
 	double sita = std::atan(-plane.c/plane.a);
@@ -208,7 +200,6 @@ cv::vector<cv::Point3f> CalcDistInf(cv::Mat lazer_image,Plane plane,cv::Mat I_Ma
 
 
 	for(int i=0;i<LAZER_POINTS;i++){
-
 
 
 		double location_z = ( l / (std::tan(sita) - ( ((lazer_points[i].x - u0) - (ganma/beta    ) * (lazer_points[i].y - v0) ) / alfa ) + std::tan(fai)*(lazer_points[i].y - v0)/beta ) );
