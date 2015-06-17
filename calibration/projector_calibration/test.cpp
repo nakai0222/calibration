@@ -12,11 +12,13 @@
 #define CHESS_ROW 9
 #define CHESS_COLUM 6
 
+#define PIXEL_INTERVAL 1
 #define POINTS_FOR_ONEIMAGE 10 
 
 #define XI_W 648
 #define XI_H 488
 
+cv::vector<cv::Point2d> DetectBrightLine(cv::Mat image);
 
 int main( int argc, char* argv[])
 {
@@ -131,71 +133,18 @@ int main( int argc, char* argv[])
 	std::cout << "translation : " <<  translations[0]<< std::endl;
 
 
-	//calculate lazer points
-	cv::vector<cv::Point2i> lazer_points(POINTS_FOR_ONEIMAGE*IMAGE_SIZE);
+	
+	cv::vector <cv::Point3f> camera_points;
 
 	for(int i=0;i<IMAGE_SIZE;i++){
 
-		cv::Mat gimg(checker_image_lazer[i].size(),checker_image_lazer[i].type()) ;
-		gimg = checker_image_lazer[i];
+	
+		//calculate lazer points
+		cv::vector<cv::Point2d> lazer_points= DetectBrightLine(checker_image_lazer[i]);
 
-		cv::imshow("R",checker_image_lazer[i]);
-		cv::imshow("R2",gimg);
-
-		cv::waitKey(0);
-
-		int most_brightness_number[POINTS_FOR_ONEIMAGE][2];
-		int most_brightness[POINTS_FOR_ONEIMAGE];
-
-
-		for(int i=0;i<POINTS_FOR_ONEIMAGE;i++){
-			most_brightness[i]=0;
-			most_brightness_number[i][0]=0;
-			most_brightness_number[i][1]=0;
-		}	
-
-		for(int j=0;j<gimg.rows;j++){
-			for(int k=0;k<gimg.step;k++){
-
-				//unsigned char tmp_brightness = gimg.at<uchar>(j,k);
-				int tmp_brightness = cv::saturate_cast<int>(gimg.data[j*gimg.step+k]);
-				//unsigned char tmp_brightness = checker_image_lazer[i].at<uchar>(j,k);
-
-				if( tmp_brightness >= most_brightness[0] ){
-
-					for(int t=POINTS_FOR_ONEIMAGE-1 ;t >= 1;t--){
-						most_brightness[t] = most_brightness[t-1];	
-
-						most_brightness_number[t][0] =most_brightness_number[t-1][0];
-						most_brightness_number[t][1] =most_brightness_number[t-1][1];
-
-
-					}
-
-					most_brightness_number[0][0] = j;
-					most_brightness_number[0][1] = k;
-					most_brightness[0] = tmp_brightness;
-				}	
-			}
-		}
-
-		//lazer_points.push_back(light_point);
-		for(int t= i*POINTS_FOR_ONEIMAGE ; t< (i+1) *POINTS_FOR_ONEIMAGE;t++){
-			//lazer_points[t].x = t+ 5;
-			lazer_points[t].x = most_brightness_number[t-i*POINTS_FOR_ONEIMAGE][0];
-			//lazer_points[t].y = t;
-			lazer_points[t].y = most_brightness_number[t-i*POINTS_FOR_ONEIMAGE][1];
-		}
-	}	
-
-
-	cv::vector <cv::Point3f> camera_points;
-
-	for(int i=0;i<IMAGE_SIZE*POINTS_FOR_ONEIMAGE;i++){
-
-
+	for(int j=0;j<lazer_points.size();j++){	
 		//translate points at camera axis
-		int vector_num = static_cast<int>(i/POINTS_FOR_ONEIMAGE); 
+		int vector_num = static_cast<int>(i); 
 		cv::Mat r0 = rotations_mat[vector_num].col(0);	
 		cv::Mat r1 = rotations_mat[vector_num].col(1);	
 		cv::Mat t = translations[vector_num]; 
@@ -211,43 +160,28 @@ int main( int argc, char* argv[])
 
 
 		cv::Mat q_inv = q.inv();	
-		//std::cout << "q" << q << std::endl;
-		//std::cout << "k" << k<< std::endl;
 
 
-		cv::Mat lazer_point = (cv::Mat_<double>(3,1) << lazer_points[i].x , lazer_points[i].y,1);
+		cv::Mat lazer_point = (cv::Mat_<double>(3,1) << lazer_points[j].x , lazer_points[j].y,1);
 		std::cout << "lazer_point" << lazer_point << std::endl;
-
-
 
 		cv::Mat I_Mat_inv = I_Mat.inv();
 
 		cv::Mat camera_point;
-		//camera_point = k*q_inv*I_Mat_inv*lazer_point; 
 		camera_point = k*q_inv;
-		//std::cout << "camera_point" << camera_point << std::endl;
 		camera_point = camera_point*I_Mat_inv;
-		//std::cout << "camera_point" << camera_point << std::endl;
 		camera_point = camera_point*lazer_point; 
-		//std::cout << "camera_point" << camera_point << std::endl;
 
 
 		double div = camera_point.at<double>(3,0);
-		//std::cout << "div : " << div << std::endl;
-
 
 		std::cout << "camera_point" << camera_point/div << std::endl;
 
 		camera_points.push_back( cv::Point3f(camera_point.at<double>(0,0)/div,camera_point.at<double>(1,0)/div,camera_point.at<double>(2,0)/div ));	
-		//camera_points.push_back( cv::Point3f(camera_point.at<double>(0,0),camera_point.at<double>(1,0),camera_point.at<double>(2,0) ));	
-
-		//camera_points.push_back(cv::Point3f(1,1,1));	
+		}
 	}
 
 	//calculate plane parameter
-	//URL:samueruchoi.blogspot.jp/2013/02/matlab_20.html
-
-
 	int x_sum = 0;
 	int y_sum = 0;
 	int z_sum = 0;
@@ -259,7 +193,7 @@ int main( int argc, char* argv[])
 	int y_z_sum =0;
 
 
-	for(int i=0;i<IMAGE_SIZE*POINTS_FOR_ONEIMAGE;i++){
+	for(int i=0;i<camera_points.size();i++){
 
 		x_sum += camera_points[i].x;
 		y_sum += camera_points[i].y;
@@ -328,3 +262,49 @@ int main( int argc, char* argv[])
 	return 0;
 
 }
+
+
+cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
+{
+
+	int count =0;
+
+	cv::Mat output_image(image.size(),image.type());
+	//cv::Mat output_image2(image.size(),image.type());
+
+	double threshold = 200;	
+	cv::threshold(image,output_image,threshold,0,cv::THRESH_TOZERO);	
+	//cv::threshold(output_image,output_image,threshold,0,cv::THRESH_TOZERO);	
+
+
+	//cv::Sobel(output_image,output_image,1,0,3);
+	//cv::Sobel(output_image,output_image,CV_32F,1,1);
+	cv::vector<cv::Point2d> lazer_line ;
+
+	for(int j=0;j<image.step;j++){
+		int up = 0;
+		int down = 0;
+		int count = 0;
+
+		for(int i=0;i<image.rows;i+=PIXEL_INTERVAL){
+
+			if(cv::saturate_cast<int>(image.data[i*image.step+j]) > 200 ){
+				if( up ==0 )up = i;
+				count++;
+			}
+
+
+		}
+		if(count != 0){
+			//push back gravity point
+			lazer_line.push_back( cv::Point2d(up+(count/2),j) );
+		}
+		//else
+			//lazer_line.push_back( cv::Point2d(0,j) );
+
+	}	
+
+	return lazer_line;
+}
+
+
