@@ -13,11 +13,13 @@
 #define CHESS_ROW 9
 #define CHESS_COLUM 6
 
+#define PIXEL_INTERVAL 2
 #define XI_W 648
 #define XI_H 488
 
 
 
+cv::vector<cv::Point2d> DetectBrightLine(cv::Mat image);
 
 int main( int argc, char* argv[])
 {
@@ -39,6 +41,9 @@ int main( int argc, char* argv[])
 
 	}
 
+
+	cv::imshow("lazer",lazer_image[0]);
+	cv::waitKey(0);
 	/*load inside and outside parameter at camera*/
 	cv::Mat I_Mat ; 
 	cv::Mat D_Mat ;
@@ -68,55 +73,8 @@ int main( int argc, char* argv[])
 
 
 	//calculate lazer points
-	cv::vector<cv::Point2i> lazer_points(IMAGE_SIZE*LAZER_POINTS);
+	cv::vector<cv::Point2d> lazer_points= DetectBrightLine(lazer_image[0]);
 
-
-	for(int i=0;i<IMAGE_SIZE;i++){
-
-
-
-	}
-		cv::Mat gimgl(lazer_image[i].size(),lazer_image[i].type()) ;
-		gimgl = lazer_image[i];
-
-
-		for(int i=0;i<gimgl.rows;i++){
-			for(int j=0;j<gimgl.step;j++){
-
-				int check=0;
-
-				for(int k=0;k<LAZER_POINTS;k++){
-					if( i == most_brightness_number[k][0] && j == most_brightness_number[k][1]) 
-						check++;
-				}
-
-				if(check > 0){
-
-
-					gimgl.data[i*gimgl.step+ j] =  255;
-
-
-				}
-
-				else
-					gimgl.data[i*gimgl.step+ j] =  0;
-
-
-			}
-		}
-
-		cv::imshow("R3",gimgl);
-
-		//lazer_points.push_back(light_point);
-		for(int t= i*LAZER_POINTS; t< (i+1) *LAZER_POINTS;t++){
-			//lazer_points[t].x = t+ 5;
-			lazer_points[t].x = most_brightness_number[t-i*LAZER_POINTS][0];
-			//lazer_points[t].y = t;
-			lazer_points[t].y = most_brightness_number[t-i*LAZER_POINTS][1];
-		}
-
-		cv::waitKey(0);
-	}	
 
 	//calculate location information
 	cv::vector<cv::Point3f> location_inf;
@@ -133,7 +91,7 @@ int main( int argc, char* argv[])
 	double v0 = I_Mat.at<double>(1,2);
 
 
-	for(int i=0;i<IMAGE_SIZE*LAZER_POINTS;i++){
+	for(int i=0;i<lazer_points.size();i++){
 
 
 
@@ -158,7 +116,48 @@ int main( int argc, char* argv[])
 }
 
 
+cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
+{
 
+	int count =0;
+
+	cv::Mat output_image(image.size(),image.type());
+	//cv::Mat output_image2(image.size(),image.type());
+
+	double threshold = 200;	
+	cv::threshold(image,output_image,threshold,0,cv::THRESH_TOZERO);	
+	//cv::threshold(output_image,output_image,threshold,0,cv::THRESH_TOZERO);	
+
+
+	//cv::Sobel(output_image,output_image,1,0,3);
+	//cv::Sobel(output_image,output_image,CV_32F,1,1);
+	cv::vector<cv::Point2d> lazer_line ;
+
+	for(int j=0;j<image.step;j++){
+		int up = 0;
+		int down = 0;
+		int count = 0;
+
+		for(int i=0;i<image.rows;i+=PIXEL_INTERVAL){
+
+			if(cv::saturate_cast<int>(image.data[i*image.step+j]) > 200 ){
+				if( up ==0 )up = i;
+				count++;
+			}
+
+
+		}
+		if(count != 0){
+			//push back gravity point
+			lazer_line.push_back( cv::Point2d(up+(count/2),j) );
+		}
+		//else
+			//lazer_line.push_back( cv::Point2d(0,j) );
+
+	}	
+
+	return lazer_line;
+}
 
 
 
