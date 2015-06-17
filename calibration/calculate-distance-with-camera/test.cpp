@@ -35,6 +35,7 @@
 #define XI_W 648
 #define XI_H 488
 
+#define PIXEL_INTERVAL 2
 
 class Plane{
 	public:
@@ -45,8 +46,9 @@ class Plane{
 
 };
 
+cv::vector<cv::Point2d> DetectBrightLine(cv::Mat image);
 
-cv::vector<cv::Point3f> CalcDistInf(cv::Mat lazer_image,Plane plane,cv::Mat I_Mat,cv::Mat D_Mat);
+cv::vector<cv::Point3d> CalcDistInf(cv::Mat lazer_image,Plane plane,cv::Mat I_Mat,cv::Mat D_Mat);
 
 
 
@@ -186,7 +188,7 @@ cv::vector<cv::Point3f> CalcDistInf(cv::Mat lazer_image,Plane plane,cv::Mat I_Ma
 	}
 
 	//calculate location information
-	cv::vector<cv::Point3f> location_inf;
+	cv::vector<cv::Point3d> location_inf;
 
 	double l = plane.d/plane.a;
 	double sita = std::atan(-plane.c/plane.a);
@@ -245,3 +247,51 @@ cv::vector<cv::Point3f> CalcDistInf(cv::Mat lazer_image,Plane plane,cv::Mat I_Ma
 
 	return location_inf;
 }
+
+
+cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
+{
+
+	int count =0;
+
+	cv::Mat output_image(image.size(),image.type());
+	//cv::Mat output_image2(image.size(),image.type());
+
+	double threshold = 200;	
+	cv::threshold(image,output_image,threshold,0,cv::THRESH_TOZERO);	
+	//cv::threshold(output_image,output_image,threshold,0,cv::THRESH_TOZERO);	
+
+
+	//cv::Sobel(output_image,output_image,1,0,3);
+	//cv::Sobel(output_image,output_image,CV_32F,1,1);
+	cv::vector<cv::Point2d> lazer_line ;
+
+	for(int j=0;j<image.step;j++){
+		int up = 0;
+		int down = 0;
+		int count = 0;
+
+		for(int i=0;i<image.rows;i+=PIXEL_INTERVAL){
+
+			if(cv::saturate_cast<int>(image.data[i*image.step+j]) > 200 ){
+				if( up ==0 )up = i;
+				count++;
+			}
+
+
+		}
+		if(count != 0){
+			//push back gravity point
+			lazer_line.push_back( cv::Point2d(up+(count/2),j) );
+		}
+		//else
+			//lazer_line.push_back( cv::Point2d(0,j) );
+
+	}	
+
+	return lazer_line;
+}
+
+
+
+
