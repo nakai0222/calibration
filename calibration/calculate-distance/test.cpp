@@ -124,7 +124,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 	cv::Mat output_image(image.size(),image.type());
 	//cv::Mat output_image2(image.size(),image.type());
 
-	double threshold = 200;	
+	double threshold = 100;	
 	cv::threshold(image,output_image,threshold,0,cv::THRESH_TOZERO);	
 	//cv::threshold(output_image,output_image,threshold,0,cv::THRESH_TOZERO);	
 
@@ -147,7 +147,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 
 
 		}
-		if(count != 0){
+		if(count >= 1){
 			//push back gravity point
 			lazer_line.push_back( cv::Point2d(up+(count/2),j) );
 		}
