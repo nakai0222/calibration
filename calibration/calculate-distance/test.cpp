@@ -13,7 +13,7 @@
 #define CHESS_ROW 9
 #define CHESS_COLUM 6
 
-#define PIXEL_INTERVAL 2
+#define PIXEL_INTERVAL 5
 #define XI_W 648
 #define XI_H 488
 
@@ -140,7 +140,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 
 		for(int i=0;i<image.rows;i+=PIXEL_INTERVAL){
 
-			if(cv::saturate_cast<int>(image.data[i*image.step+j]) > 200 ){
+			if(cv::saturate_cast<int>(image.data[i*image.step+j]) > threshold ){
 				if( up ==0 )up = i;
 				count++;
 			}

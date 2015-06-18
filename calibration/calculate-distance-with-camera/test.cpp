@@ -273,7 +273,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 
 		for(int i=0;i<image.rows;i+=PIXEL_INTERVAL){
 
-			if(cv::saturate_cast<int>(image.data[i*image.step+j]) > 200 ){
+			if(cv::saturate_cast<int>(image.data[i*image.step+j]) > threshold){
 				if( up ==0 )up = i;
 				count++;
 			}
