@@ -150,11 +150,13 @@ int main( int argc, char* argv[])
 
 
 		cv::Mat q_inv = q.inv();	
-
-		cv::imshow("lazer",checker_image_lazer[i]);
-		cv::waitKey(0);
 		//calculate lazer points
 		cv::vector<cv::Point2d> lazer_points = DetectBrightLine(checker_image_lazer[i]);
+		std::cout << "lazer_points" << lazer_points << std::endl << std::endl<< std::endl;
+	
+		cv::imshow("lazer",checker_image_lazer[i]);
+		cv::waitKey(0);
+
 
 		for(int j=0;j<lazer_points.size();j++){	
 	
@@ -267,7 +269,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 	cv::Mat output_image(image.size(),image.type());
 	//cv::Mat output_image2(image.size(),image.type());
 
-	double threshold = 100;	
+	double threshold = 220;	
 	//cv::threshold(image,output_image,threshold,0,cv::THRESH_TOZERO);	
 	//cv::threshold(output_image,output_image,threshold,0,cv::THRESH_TOZERO);	
 
@@ -290,7 +292,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 
 
 		}
-		if(count >= 5){
+		if(count >= 1){
 			//push back gravity point
 			lazer_line.push_back( cv::Point2d(up+(count*0.5),j) );
 		}
