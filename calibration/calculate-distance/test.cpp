@@ -27,23 +27,6 @@ int main( int argc, char* argv[])
 	//load the raw and lazer image 
 
 	cv::vector<cv::Mat> lazer_image;
-	//cv::vector<cv::Mat> lazer_image(XI_H,XI_W,CV_8UC1);
-
-	for(int i=0;i<IMAGE_SIZE;i++)
-	{
-
-		//load images
-		std::stringstream ss;
-		std::string image_name;
-		ss <<  i << "_.png";
-		image_name = ss.str();	
-		lazer_image.push_back( cv::imread(image_name.c_str(),0) );
-
-	}
-
-
-	cv::imshow("lazer",lazer_image[0]);
-	cv::waitKey(0);
 	/*load inside and outside parameter at camera*/
 	cv::Mat I_Mat ; 
 	cv::Mat D_Mat ;
@@ -53,6 +36,26 @@ int main( int argc, char* argv[])
 	fs["intrinsicMat"] >> I_Mat;
 	fs["distCoeffs"] >> D_Mat;
 
+//cv::vector<cv::Mat> lazer_image(XI_H,XI_W,CV_8UC1);
+
+	for(int i=0;i<IMAGE_SIZE;i++)
+	{
+
+		//load images
+		std::stringstream ss;
+		std::string image_name;
+		ss <<  i << "_.png";
+		image_name = ss.str();	
+		cv::Mat image = cv::imread(image_name.c_str(),0);
+		cv::Mat undistort;
+		cv::undistort(image,undistort,I_Mat,D_Mat);
+
+		lazer_image.push_back( undistort );
+	}
+
+
+	cv::imshow("lazer",lazer_image[0]);
+	cv::waitKey(0);
 	/*load projector parameter */
 	double plane_a;
 	double plane_b;	
@@ -124,7 +127,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 	cv::Mat output_image(image.size(),image.type());
 	//cv::Mat output_image2(image.size(),image.type());
 
-	double threshold = 100;	
+	double threshold = 200;	
 	cv::threshold(image,output_image,threshold,0,cv::THRESH_TOZERO);	
 	//cv::threshold(output_image,output_image,threshold,0,cv::THRESH_TOZERO);	
 
@@ -149,7 +152,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 		}
 		if(count >= 1){
 			//push back gravity point
-			lazer_line.push_back( cv::Point2d(up+(count/2),j) );
+			lazer_line.push_back( cv::Point2d(up+(count*0.5),j) );
 		}
 		//else
 			//lazer_line.push_back( cv::Point2d(0,j) );
