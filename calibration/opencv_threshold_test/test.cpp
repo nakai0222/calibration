@@ -25,7 +25,7 @@ int main(){
 	cv::Mat gimgl(cimgl.size(),cimgl.type());
 
 	std::stringstream ss;
-	ss << "4_.png";
+	ss << "0_.png";
 	std::string filename = ss.str();
 
 	cimgl = cv::imread(filename.c_str(),0);
@@ -74,7 +74,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 	cv::Mat output_image(image.size(),image.type());
 	//cv::Mat output_image2(image.size(),image.type());
 
-	double threshold = 200;	
+	double threshold = 100;	
 	cv::threshold(image,output_image,threshold,0,cv::THRESH_TOZERO);	
 	//cv::threshold(output_image,output_image,threshold,0,cv::THRESH_TOZERO);	
 
@@ -93,14 +93,14 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 
 		for(int i=0;i<image.rows;i+=PIXEL_INTERVAL){
 
-			if(cv::saturate_cast<int>(image.data[i*image.step+j]) > 200 ){
+			if(cv::saturate_cast<int>(image.data[i*image.step+j]) > threshold){
 				if( up ==0 )up = i;
 				count++;
 			}
 
 
 		}
-		if(count > 7){
+		if(count >= 5){
 			//push back gravity point
 			lazer_line.push_back( cv::Point2d(up+(count/2),j) );
 		}

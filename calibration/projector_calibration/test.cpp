@@ -138,8 +138,6 @@ int main( int argc, char* argv[])
 
 	for(int i=0;i<IMAGE_SIZE;i++){
 
-		//calculate lazer points
-		cv::vector<cv::Point2d> lazer_points = DetectBrightLine(checker_image_lazer[i]);
 		cv::Mat r0 = rotations_mat[i].col(0);	
 		cv::Mat r1 = rotations_mat[i].col(1);	
 		cv::Mat t = translations[i]; 
@@ -153,10 +151,13 @@ int main( int argc, char* argv[])
 
 		cv::Mat q_inv = q.inv();	
 
-	for(int j=0;j<lazer_points.size();j++){	
-	
+		cv::imshow("lazer",checker_image_lazer[i]);
+		cv::waitKey(0);
+		//calculate lazer points
+		cv::vector<cv::Point2d> lazer_points = DetectBrightLine(checker_image_lazer[i]);
 
-		
+		for(int j=0;j<lazer_points.size();j++){	
+	
 		cv::Mat lazer_point = (cv::Mat_<double>(3,1) << lazer_points[j].x , lazer_points[j].y,1);
 		std::cout << "lazer_point" << lazer_point << std::endl;
 
@@ -266,7 +267,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 	cv::Mat output_image(image.size(),image.type());
 	//cv::Mat output_image2(image.size(),image.type());
 
-	double threshold = 200;	
+	double threshold = 100;	
 	//cv::threshold(image,output_image,threshold,0,cv::THRESH_TOZERO);	
 	//cv::threshold(output_image,output_image,threshold,0,cv::THRESH_TOZERO);	
 
@@ -289,7 +290,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 
 
 		}
-		if(count > 7){
+		if(count >= 5){
 			//push back gravity point
 			lazer_line.push_back( cv::Point2d(up+(count*0.5),j) );
 		}
