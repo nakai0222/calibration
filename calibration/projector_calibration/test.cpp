@@ -138,30 +138,25 @@ int main( int argc, char* argv[])
 
 	for(int i=0;i<IMAGE_SIZE;i++){
 
-	
 		//calculate lazer points
-		cv::vector<cv::Point2d> lazer_points= DetectBrightLine(checker_image_lazer[i]);
+		cv::vector<cv::Point2d> lazer_points = DetectBrightLine(checker_image_lazer[i]);
+		cv::Mat r0 = rotations_mat[i].col(0);	
+		cv::Mat r1 = rotations_mat[i].col(1);	
+		cv::Mat t = translations[i]; 
 
-	for(int j=0;j<lazer_points.size();j++){	
 		//translate points at camera axis
-		int vector_num = static_cast<int>(i); 
-		cv::Mat r0 = rotations_mat[vector_num].col(0);	
-		cv::Mat r1 = rotations_mat[vector_num].col(1);	
-		cv::Mat t = translations[vector_num]; 
-
-
 		cv::Mat q = (cv::Mat_<double>(3,3)<<  r0.at<double>(0,0),  r1.at<double>(0,0),  t.at<double>(0,0),  r0.at<double>(1,0),  r1.at<double>(1,0),  t.at<double>(1,0), r0.at<double>(2,0),  r1.at<double>(2,0),  t.at<double>(2,0)) ;
-
-
 
 
 		cv::Mat k = (cv::Mat_<double>(4,3) << q.at<double>(0,0)  , q.at<double>(0,1)  , q.at<double>(0,2)  , q.at<double>(1,0)  , q.at<double>(1,1)  , q.at<double>(1,2)  , q.at<double>(2,0)  , q.at<double>(2,1)  , q.at<double>(2,2)  , 0 , 0, 1  );
 
 
-
 		cv::Mat q_inv = q.inv();	
 
+	for(int j=0;j<lazer_points.size();j++){	
+	
 
+		
 		cv::Mat lazer_point = (cv::Mat_<double>(3,1) << lazer_points[j].x , lazer_points[j].y,1);
 		std::cout << "lazer_point" << lazer_point << std::endl;
 
@@ -171,7 +166,6 @@ int main( int argc, char* argv[])
 		camera_point = k*q_inv;
 		camera_point = camera_point*I_Mat_inv;
 		camera_point = camera_point*lazer_point; 
-
 
 		double div = camera_point.at<double>(3,0);
 
@@ -273,7 +267,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 	//cv::Mat output_image2(image.size(),image.type());
 
 	double threshold = 200;	
-	cv::threshold(image,output_image,threshold,0,cv::THRESH_TOZERO);	
+	//cv::threshold(image,output_image,threshold,0,cv::THRESH_TOZERO);	
 	//cv::threshold(output_image,output_image,threshold,0,cv::THRESH_TOZERO);	
 
 
@@ -288,16 +282,16 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 
 		for(int i=0;i<image.rows;i+=PIXEL_INTERVAL){
 
-			if(cv::saturate_cast<int>(image.data[i*image.step+j]) > 200 ){
+			if(cv::saturate_cast<int>(image.data[i*image.step+j]) > threshold ){
 				if( up ==0 )up = i;
 				count++;
 			}
 
 
 		}
-		if(count != 0){
+		if(count > 7){
 			//push back gravity point
-			lazer_line.push_back( cv::Point2d(up+(count/2),j) );
+			lazer_line.push_back( cv::Point2d(up+(count*0.5),j) );
 		}
 		//else
 			//lazer_line.push_back( cv::Point2d(0,j) );

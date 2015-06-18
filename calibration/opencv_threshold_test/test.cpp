@@ -11,7 +11,7 @@
 #define XI_H 488
 
 #define POINTNUM 10
-#define PIXEL_INTERVAL 2
+#define PIXEL_INTERVAL 1
 
 cv::Mat Patch(cv::Mat image);
 cv::vector<cv::Point2d> DetectBrightLine(cv::Mat image);
@@ -70,7 +70,6 @@ int main(){
 cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 {
 
-	int count =0;
 
 	cv::Mat output_image(image.size(),image.type());
 	//cv::Mat output_image2(image.size(),image.type());
@@ -101,12 +100,12 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 
 
 		}
-		if(count != 0){
+		if(count > 7){
 			//push back gravity point
 			lazer_line.push_back( cv::Point2d(up+(count/2),j) );
 		}
-		//else
-			//lazer_line.push_back( cv::Point2d(0,j) );
+		else
+			lazer_line.push_back( cv::Point2d(0,j) );
 
 	}	
 
