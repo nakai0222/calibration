@@ -53,7 +53,6 @@ int main( int argc, char* argv[])
 		lazer_image.push_back( undistort );
 	}
 
-
 	cv::imshow("lazer",lazer_image[0]);
 	cv::waitKey(0);
 	/*load projector parameter */
@@ -126,7 +125,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 	cv::Mat output_image(image.size(),image.type());
 	//cv::Mat output_image2(image.size(),image.type());
 
-	double threshold = 200;	
+	double threshold = 150;	
 	//cv::threshold(image,output_image,threshold,0,cv::THRESH_TOZERO);	
 	//cv::threshold(output_image,output_image,threshold,0,cv::THRESH_TOZERO);	
 
@@ -154,7 +153,6 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 			pos_edge = pos_edge/pos;
 			lazer_line.push_back( cv::Point2d(pos_edge,j) );
 			//push back gravity point
-
 			}
 	}	
 
