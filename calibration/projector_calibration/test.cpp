@@ -12,7 +12,7 @@
 #define CHESS_ROW 9
 #define CHESS_COLUM 6
 
-#define PIXEL_INTERVAL 10
+#define PIXEL_INTERVAL 1
 #define POINTS_FOR_ONEIMAGE 1 
 
 #define XI_W 648
@@ -267,40 +267,63 @@ int main( int argc, char* argv[])
 cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 {
 
-
 	cv::Mat output_image(image.size(),image.type());
 	//cv::Mat output_image2(image.size(),image.type());
 
-	double threshold = 200;	
-	//cv::threshold(image,output_image,threshold,0,cv::THRESH_TOZERO);	
-	//cv::threshold(output_image,output_image,threshold,0,cv::THRESH_TOZERO);	
+	double threshold = 220;	
+	cv::threshold(image,image,threshold,0,cv::THRESH_TOZERO);	
 
 
 	//cv::Sobel(output_image,output_image,1,0,3);
 	//cv::Sobel(output_image,output_image,CV_32F,1,1);
+	cv::imshow("r3",image);	
+	cv::waitKey(0);
+
 	cv::vector<cv::Point2d> lazer_line ;
 
 	for(int j=0;j<image.step;j++){
+		int up = 0;
+		int down = 0;
+		int count = 0;
 		int edge = 0;
-		double pos_edge = 0;
 		int pos = 0;
+		double pos_edge = 0 ; 	
 
 		for(int i=0;i<image.rows-1;i+=PIXEL_INTERVAL){
 
-			if( cv::saturate_cast<int>(image.data[(i+1)*image.step+j]) > threshold){ 
-				edge = cv::saturate_cast<int>(image.data[(i+1)*image.step+j]) - cv::saturate_cast<int>(image.data[i*image.step+j]) ;
-				pos += edge ; 
-				pos_edge += edge * (i+0.5); 
+			edge = abs(cv::saturate_cast<int>(image.data[(i+1)*image.step+j]) - cv::saturate_cast<int>(image.data[i*image.step+j]) ) ;
+			pos_edge += edge * (i+0.5); 
+			pos += edge; 
 
-			}
 		}
+	
 		if(pos_edge > 0){
-			pos_edge = pos_edge/pos;
-			//push back gravity point
+		pos_edge = pos_edge/pos;
+		//std::cout << j  << " edge " << pos_edge << std::endl;	
 			lazer_line.push_back( cv::Point2d(pos_edge,j) );
 		}
-	}	
+		//else
+			//lazer_line.push_back( cv::Point2d(0,j) );
 
+	}	
+	/*
+	for(int i=0;i<image.rows;i++)	
+	for(int j=0;j<image.cols;j++)	
+		image.data[i*image.step + j] = 0;
+
+	std::cout << " size : " << lazer_line.size() << std::endl;
+
+	for(int i = 0 ; i < lazer_line.size(); i++)
+	{
+
+		image.data[static_cast<int>(lazer_line[i].x)*image.step + static_cast<int>(lazer_line[i].y)] = 255;		
+	}
+	
+
+	cv::namedWindow("R3");
+	imshow("R3",image);
+	imwrite("./output.bmp",image);
+	*/	
 	return lazer_line;
 }
 

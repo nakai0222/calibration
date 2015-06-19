@@ -10,8 +10,8 @@
 #define XI_W 648
 #define XI_H 488
 
-#define POINTNUM 10
-#define PIXEL_INTERVAL 1
+#define POINTNUM 30
+#define PIXEL_INTERVAL 10
 
 cv::Mat Patch(cv::Mat image);
 cv::vector<cv::Point2d> DetectBrightLine(cv::Mat image);
@@ -45,23 +45,6 @@ int main(){
 
 	cv::vector<cv::Point2d> lazer_line = DetectBrightLine(gimgl);
 
-	for(int i=0;i<gimgl.rows;i++)	
-	for(int j=0;j<gimgl.cols;j++)	
-		gimgl.data[i*gimgl.step + j] = 0;
-
-	std::cout << " size : " << lazer_line.size() << std::endl;
-
-	for(int i = 0 ; i < lazer_line.size(); i++)
-	{
-
-		gimgl.data[static_cast<int>(lazer_line[i].x)*gimgl.step + static_cast<int>(lazer_line[i].y)] = 255;		
-	}
-	
-
-	cv::namedWindow("R3");
-	imshow("R3",gimgl);
-	imwrite("./output.bmp",gimgl);
-	
 	std::cout << "finish" << std::endl;
 
 	cv::waitKey(0);
@@ -113,6 +96,23 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 
 	}	
 
+	for(int i=0;i<image.rows;i++)	
+	for(int j=0;j<image.cols;j++)	
+		image.data[i*image.step + j] = 0;
+
+	std::cout << " size : " << lazer_line.size() << std::endl;
+
+	for(int i = 0 ; i < lazer_line.size(); i++)
+	{
+
+		image.data[static_cast<int>(lazer_line[i].x)*image.step + static_cast<int>(lazer_line[i].y)] = 255;		
+	}
+	
+
+	cv::namedWindow("R3");
+	imshow("R3",image);
+	imwrite("./output.bmp",image);
+	
 	return lazer_line;
 }
 
