@@ -264,12 +264,11 @@ int main( int argc, char* argv[])
 cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 {
 
-	int count =0;
 
 	cv::Mat output_image(image.size(),image.type());
 	//cv::Mat output_image2(image.size(),image.type());
 
-	double threshold = 220;	
+	double threshold = 200;	
 	//cv::threshold(image,output_image,threshold,0,cv::THRESH_TOZERO);	
 	//cv::threshold(output_image,output_image,threshold,0,cv::THRESH_TOZERO);	
 
@@ -279,26 +278,23 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 	cv::vector<cv::Point2d> lazer_line ;
 
 	for(int j=0;j<image.step;j++){
-		int up = 0;
-		int down = 0;
-		int count = 0;
+		int edge = 0;
+		double pos_edge = 0;
+		int pos = 0;
+		
+		for(int i=0;i<image.rows-1;i+=PIXEL_INTERVAL){
 
-		for(int i=0;i<image.rows;i+=PIXEL_INTERVAL){
-
-			if(cv::saturate_cast<int>(image.data[i*image.step+j]) > threshold ){
-				if( up ==0 )up = i;
-				count++;
+			if( cv::saturate_cast<int>(image.data[(i+1)*image.step+j]) > threshold){ 
+			edge = cv::saturate_cast<int>(image.data[(i+1)*image.step+j]) - cv::saturate_cast<int>(image.data[i*image.step+j]) ;
+			pos += edge ; 
+			pos_edge += edge * (i+0.5); 
+			
 			}
-
-
 		}
-		if(count >= 1){
+			if(pos_edge > 0)
+			pos_edge = pos_edge/pos;
 			//push back gravity point
-			lazer_line.push_back( cv::Point2d(up+(count*0.5),j) );
-		}
-		//else
-			//lazer_line.push_back( cv::Point2d(0,j) );
-
+			lazer_line.push_back( cv::Point2d(pos_edge,j) );
 	}	
 
 	return lazer_line;

@@ -44,20 +44,19 @@ int main(){
 	 */
 
 	cv::vector<cv::Point2d> lazer_line = DetectBrightLine(gimgl);
-	
-	for(int i=0;i<gimgl.rows;i++){
-		for(int j=0;j<gimgl.step;j++){
 
+	for(int i=0;i<gimgl.rows;i++)	
+	for(int j=0;j<gimgl.cols;j++)	
+		gimgl.data[i*gimgl.step + j] = 0;
 
-			if( lazer_line[j].x != 0 && i == lazer_line[j].x ){ 
+	std::cout << " size : " << lazer_line.size() << std::endl;
 
-				gimgl.data[i*gimgl.step+ j] =  255;
+	for(int i = 0 ; i < lazer_line.size(); i++)
+	{
 
-			}
-			else 
-				gimgl.data[i*gimgl.step+ j] =  0;
-		}
+		gimgl.data[static_cast<int>(lazer_line[i].x)*gimgl.step + static_cast<int>(lazer_line[i].y)] = 255;		
 	}
+	
 
 	cv::namedWindow("R3");
 	imshow("R3",gimgl);
@@ -73,18 +72,16 @@ int main(){
 cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 {
 
-
 	cv::Mat output_image(image.size(),image.type());
 	//cv::Mat output_image2(image.size(),image.type());
 
-	double threshold = 200;	
-	cv::threshold(image,output_image,threshold,0,cv::THRESH_TOZERO);	
-	//cv::threshold(output_image,output_image,threshold,0,cv::THRESH_TOZERO);	
+	double threshold = 220;	
+	cv::threshold(image,image,threshold,0,cv::THRESH_TOZERO);	
 
 
 	//cv::Sobel(output_image,output_image,1,0,3);
 	//cv::Sobel(output_image,output_image,CV_32F,1,1);
-	cv::imshow("r3",output_image);	
+	cv::imshow("r3",image);	
 	cv::waitKey(0);
 
 	cv::vector<cv::Point2d> lazer_line ;
@@ -93,20 +90,24 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 		int up = 0;
 		int down = 0;
 		int count = 0;
+		int edge = 0;
+		int pos = 0;
+		double pos_edge = 0 ; 	
 
-		for(int i=0;i<image.rows;i+=PIXEL_INTERVAL){
+		for(int i=0;i<image.rows-1;i+=PIXEL_INTERVAL){
 
-			if(cv::saturate_cast<int>(image.data[i*image.step+j]) > threshold){
-				if( up ==0 )up = i;
-				count++;
-			}
-
+			edge = abs(cv::saturate_cast<int>(image.data[(i+1)*image.step+j]) - cv::saturate_cast<int>(image.data[i*image.step+j]) ) ;
+			pos_edge += edge * (i+0.5); 
+			pos += edge; 
 
 		}
-		if(count >= 2){
-			//push back gravity point
-			lazer_line.push_back( cv::Point2d(up+(count/2),j) );
-		}
+	
+		if(pos_edge > 0)
+		pos_edge = pos_edge/pos;
+		std::cout << j  << " edge " << pos_edge << std::endl;	
+
+		if(pos_edge >= 1)
+			lazer_line.push_back( cv::Point2d(pos_edge,j) );
 		else
 			lazer_line.push_back( cv::Point2d(0,j) );
 
