@@ -12,8 +12,8 @@
 #define CHESS_ROW 9
 #define CHESS_COLUM 6
 
-#define PIXEL_INTERVAL 1
-#define POINTS_FOR_ONEIMAGE 10 
+#define PIXEL_INTERVAL 10
+#define POINTS_FOR_ONEIMAGE 1 
 
 #define XI_W 648
 #define XI_H 488
@@ -131,25 +131,28 @@ int main( int argc, char* argv[])
 	std::cout << "rotation : " <<  rotations[0]<< std::endl;
 	std::cout << "rotation mat : " <<  rotations_mat[0]<< std::endl;
 	std::cout << "translation : " <<  translations[0]<< std::endl;
-
-
-
 	cv::vector <cv::Point3f> camera_points;
+
+
 
 	for(int i=0;i<IMAGE_SIZE;i++){
 
-		cv::Mat r0 = rotations_mat[i].col(0);	
-		cv::Mat r1 = rotations_mat[i].col(1);	
-		cv::Mat t = translations[i]; 
-
-		//translate points at camera axis
-		cv::Mat q = (cv::Mat_<double>(3,3)<<  r0.at<double>(0,0),  r1.at<double>(0,0),  t.at<double>(0,0),  r0.at<double>(1,0),  r1.at<double>(1,0),  t.at<double>(1,0), r0.at<double>(2,0),  r1.at<double>(2,0),  t.at<double>(2,0)) ;
+	cv::Mat r0 = rotations_mat[i].col(0);	
+	cv::Mat r1 = rotations_mat[i].col(1);	
+	cv::Mat t = translations[i]; 
 
 
-		cv::Mat k = (cv::Mat_<double>(4,3) << q.at<double>(0,0)  , q.at<double>(0,1)  , q.at<double>(0,2)  , q.at<double>(1,0)  , q.at<double>(1,1)  , q.at<double>(1,2)  , q.at<double>(2,0)  , q.at<double>(2,1)  , q.at<double>(2,2)  , 0 , 0, 1  );
+	//translate points at camera axis
+	cv::Mat q = (cv::Mat_<double>(3,3)<<  r0.at<double>(0,0),  r1.at<double>(0,0),  t.at<double>(0,0),  r0.at<double>(1,0),  r1.at<double>(1,0),  t.at<double>(1,0), r0.at<double>(2,0),  r1.at<double>(2,0),  t.at<double>(2,0)) ;
 
 
-		cv::Mat q_inv = q.inv();	
+	cv::Mat k = (cv::Mat_<double>(4,3) << q.at<double>(0,0)  , q.at<double>(0,1)  , q.at<double>(0,2)  , q.at<double>(1,0)  , q.at<double>(1,1)  , q.at<double>(1,2)  , q.at<double>(2,0)  , q.at<double>(2,1)  , q.at<double>(2,2)  , 0 , 0, 1  );
+
+
+
+	cv::Mat q_inv = q.inv();	
+
+
 		//calculate lazer points
 		cv::vector<cv::Point2d> lazer_points = DetectBrightLine(checker_image_lazer[i]);
 		std::cout << "lazer_points" << lazer_points << std::endl << std::endl<< std::endl;
