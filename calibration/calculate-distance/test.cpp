@@ -141,8 +141,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 
 		for(int i=0;i<image.rows-1;i+=PIXEL_INTERVAL){
 
-			if( cv::saturate_cast<int>(image.data[(i+1)*image.step+j]) > threshold){ 
-				edge = cv::saturate_cast<int>(image.data[(i+1)*image.step+j]) - cv::saturate_cast<int>(image.data[i*image.step+j]) ;
+				edge =abs( cv::saturate_cast<int>(image.data[(i+1)*image.step+j]) - cv::saturate_cast<int>(image.data[i*image.step+j]) ) ;
 				pos += edge ; 
 				pos_edge += edge * (i+0.5); 
 
