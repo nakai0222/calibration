@@ -2,9 +2,9 @@
 
 #include <cmath>
 #include <iostream>
-#include <GLUT/freeglut.h>
+//#include <freeglut.h>
 #include <OpenGL/gl.h>
-#include <GLUT/glut.h>
+#include <GL/freeglut.h>
 
 
 #define PLOTSIZE (2)
@@ -57,7 +57,7 @@ namespace GLSpace {
 	void Ground(void);  //‘å’n‚Ì•`‰æ
 
 	void qmul(double r[], const double p[], const double q[]);
-	void qrot(double r[], double q[]);
+	static void qrot(double r[], double q[]);
 	void mouse_motion(int x, int y);
 	void mouse_on(int button, int state, int x, int y);
 	void keyboard(unsigned char key, int x, int y);
@@ -65,7 +65,6 @@ namespace GLSpace {
 
 	bool hsv2rgbColor(const int h_tmp, const int maxL, const int minL, const double s=255, const double v=255);
 	bool hsv2rgb(double &r, double &g, double &b, const int h_tmp, const int maxL, const int minL, const double s=255, const double v=255);
-
 
 	void setRTs(double rt0, double rt1, double rt2, double rt3, double rt4, double rt5, double rt6, double rt7, double rt8, double rt9, double rt10, double rt11, double rt12, double rt13, double rt14, double rt15, double _z_slide);
 	void showRTs();
