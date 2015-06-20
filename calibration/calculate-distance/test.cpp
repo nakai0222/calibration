@@ -97,7 +97,7 @@ int main( int argc, char* argv[])
 
 
 
-		double location_z = ( l / (std::tan(sita) - ( ((lazer_points[i].x - u0) - (ganma/beta    ) * (lazer_points[i].y - v0) ) / alfa ) + std::tan(fai)*(lazer_points[i].y - v0)/beta ) );
+		double location_z = ( l /( (-plane_c/plane_a) - ( ((lazer_points[i].x - u0) - (ganma/beta    ) * (lazer_points[i].y - v0) ) / alfa ) + (-plane_b)*(lazer_points[i].y - v0)/(plane_a*beta) ) );
 		//location_inf.z = ( l / (std::tan(sita) - ( ((lazer_points[i].x - u0) - (ganma/beta    ) * (lazer_points[i].y - v0) ) / alfa ) + std::tan(fai)*(lazer_points[i].y - v0)/beta ) );
 
 		double location_x = ( ( (lazer_points[i].x - u0) - (ganma/beta)*(lazer_points[i].y - v0) ) / alfa )*location_z;
@@ -150,7 +150,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 			if(pos_edge > 0){
 			pos_edge = pos_edge/pos;
 			//push back gravity point
-			lazer_line.push_back( cv::Point2d(pos_edge,j) );
+			lazer_line.push_back( cv::Point2d(j,pos_edge) );
 			}
 	}
 
