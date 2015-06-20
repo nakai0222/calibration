@@ -160,7 +160,7 @@ int main( int argc, char* argv[])
 		std::cout << "lazer_points" << lazer_points << std::endl << std::endl<< std::endl;
 		for(int j=0;j<lazer_points.size();j++){	
 
-			cv::Mat lazer_point = (cv::Mat_<double>(3,1) << lazer_points[j].y , lazer_points[j].x,1);
+			cv::Mat lazer_point = (cv::Mat_<double>(3,1) << lazer_points[j].x , lazer_points[j].y,1);
 			std::cout << "lazer_point" << lazer_point << std::endl;
 
 			cv::Mat I_Mat_inv = I_Mat.inv();
@@ -298,7 +298,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 		if(pos_edge > 0){
 			pos_edge = pos_edge/pos;
 			//std::cout << j  << " edge " << pos_edge << std::endl;	
-			lazer_line.push_back( cv::Point2d(pos_edge,j) );
+			lazer_line.push_back( cv::Point2d(j,pos_edge) );
 			//lazer_line.push_back( cv::Point2d(pos_edge,j) );
 		}
 		//else
@@ -315,7 +315,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 	for(int i = 0 ; i < lazer_line.size(); i++)
 	{
 
-		image.data[static_cast<int>( (lazer_line[i].x)*image.step + lazer_line[i].y )] = 255;		
+		image.data[static_cast<int>( (lazer_line[i].y)*image.step + lazer_line[i].x )] = 255;		
 	}
 
 
