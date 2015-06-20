@@ -146,13 +146,13 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 				pos_edge += edge * (i+0.5); 
 
 			}
-		}
-		if(pos_edge > 0){
+
+			if(pos_edge > 0){
 			pos_edge = pos_edge/pos;
 			//push back gravity point
 			lazer_line.push_back( cv::Point2d(pos_edge,j) );
-		}
-	}	
+			}
+	}
 
 	return lazer_line;
 }
