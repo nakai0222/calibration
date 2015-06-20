@@ -11,11 +11,10 @@
 #define XI_H 488
 
 #define POINTNUM 30
-#define PIXEL_INTERVAL 10
+#define PIXEL_INTERVAL 1
 
 cv::Mat Patch(cv::Mat image);
 cv::vector<cv::Point2d> DetectBrightLine(cv::Mat image);
-
 
 
 int main(){
@@ -33,7 +32,6 @@ int main(){
 
 	cv::imshow("R",gimgl);
 	cv::imshow("R2",cimgl);
-
 
 	imwrite("./output2.bmp",cimgl);
 	//cv::Mat output_image; 
@@ -58,7 +56,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 	cv::Mat output_image(image.size(),image.type());
 	//cv::Mat output_image2(image.size(),image.type());
 
-	double threshold = 220;	
+	double threshold = 250;	
 	cv::threshold(image,image,threshold,0,cv::THRESH_TOZERO);	
 
 
