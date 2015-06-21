@@ -223,7 +223,6 @@ int main( int argc, char* argv[])
 	std::cout << "u : " << u<< std::endl;
 
 
-
 	cv::Mat projector_parametter;  
 	projector_parametter = M.inv()*u;
 
@@ -232,10 +231,10 @@ int main( int argc, char* argv[])
 
 
 	//ax+by+cz+d = 0
-	double plane_c = 1/sqrt(projector_parametter.at<double>(0,0)*projector_parametter.at<double>(0,0) + projector_parametter.at<double>(1,0)*projector_parametter.at<double>(1,0) + 1);
+	double plane_c = 1/sqrt(projector_parametter.at<double>(0,0)*projector_parametter.at<double>(0,0) + projector_parametter.at<double>(1,0)*projector_parametter.at<double>(1,0) + 1.0);
 	double plane_a = -projector_parametter.at<double>(0,0)*plane_c;
 	double plane_b = -projector_parametter.at<double>(1,0)*plane_c;
-	double plane_d = -projector_parametter.at<double>(2,0)*plane_c;
+	double plane_d = projector_parametter.at<double>(2,0)*plane_c;
 
 
 	std::cout << "plane_a : " << plane_a << std::endl;
