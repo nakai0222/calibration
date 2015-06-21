@@ -198,11 +198,12 @@ int main( int argc, char* argv[])
 		y_squ_sum += camera_points[i].y*camera_points[i].y;
 		z_squ_sum += camera_points[i].z*camera_points[i].z;
 			
-		
+		for(int j=0;j<camera_points.size();j++){	
+			
 		x_y_sum += camera_points[i].x*camera_points[i].y;
 		x_z_sum += camera_points[i].x*camera_points[i].z;
 		y_z_sum += camera_points[i].y*camera_points[i].z;
-
+		}
 	}
 
 
