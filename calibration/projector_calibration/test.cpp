@@ -109,7 +109,7 @@ int main( int argc, char* argv[])
 	for(int i=0;i<IMAGE_SIZE;i++){
 		for(int j=0;j<checker_pattern_size.area();j++){
 
-			world_points[i].push_back(cv::Point3f( static_cast<float>( j%checker_pattern_size.width*10),static_cast<float>(j /checker_pattern_size.width * 10), 0.0) ) ;
+			world_points[i].push_back(cv::Point3f( static_cast<float>( j%checker_pattern_size.width*CHESS_SIZE),static_cast<float>(j /checker_pattern_size.width *CHESS_SIZE ), 0.0) ) ;
 		}
 	}
 
