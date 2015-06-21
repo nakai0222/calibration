@@ -12,7 +12,7 @@
 #define CHESS_ROW 9
 #define CHESS_COLUM 6
 
-#define PIXEL_INTERVAL 1 
+#define PIXEL_INTERVAL 1
 #define POINTS_FOR_ONEIMAGE 1 
 
 #define XI_W 648
@@ -133,8 +133,6 @@ int main( int argc, char* argv[])
 	std::cout << "translation : " <<  translations[0]<< std::endl;
 	cv::vector <cv::Point3f> camera_points;
 
-
-
 	for(int i=0;i<IMAGE_SIZE;i++){
 
 		cv::Mat r0 = rotations_mat[i].col(0);	
@@ -152,8 +150,8 @@ int main( int argc, char* argv[])
 
 		cv::Mat q_inv = q.inv();	
 
-		cv::imshow("lazer",checker_image_lazer[i]);
-		cv::waitKey(0);
+		//cv::imshow("lazer",checker_image_lazer[i]);
+		//cv::waitKey(0);
 
 		//calculate lazer points
 		cv::vector<cv::Point2d> lazer_points = DetectBrightLine(checker_image_lazer[i]);
@@ -161,7 +159,7 @@ int main( int argc, char* argv[])
 		for(int j=0;j<lazer_points.size();j++){	
 
 			cv::Mat lazer_point = (cv::Mat_<double>(3,1) << lazer_points[j].x , lazer_points[j].y,1);
-			std::cout << "lazer_point" << lazer_point << std::endl;
+			//std::cout << "lazer_point" << lazer_point << std::endl;
 
 			cv::Mat I_Mat_inv = I_Mat.inv();
 
@@ -172,7 +170,7 @@ int main( int argc, char* argv[])
 
 			double div = camera_point.at<double>(3,0);
 
-			std::cout << "camera_point" << camera_point/div << std::endl;
+			//std::cout << "camera_point" << camera_point/div << std::endl;
 
 			camera_points.push_back( cv::Point3f(camera_point.at<double>(0,0)/div,camera_point.at<double>(1,0)/div,camera_point.at<double>(2,0)/div ));	
 		}
@@ -261,6 +259,8 @@ int main( int argc, char* argv[])
 }
 
 
+
+
 cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 {
 
@@ -268,7 +268,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 	//cv::Mat output_image2(image.size(),image.type());
 
 	cv::imshow("r2",image);	
-	double threshold = 250;	
+	double threshold = 200;	
 	cv::threshold(image,image,threshold,0,cv::THRESH_TOZERO);	
 
 
@@ -280,9 +280,6 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 	cv::vector<cv::Point2d> lazer_line ;
 
 	for(int j=0;j<image.step;j++){
-		int up = 0;
-		int down = 0;
-		int count = 0;
 		int edge = 0;
 		int pos = 0;
 		double pos_edge = 0 ; 	
@@ -290,14 +287,16 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 		for(int i=0;i<image.rows-1;i+=PIXEL_INTERVAL){
 
 			edge = abs(cv::saturate_cast<int>(image.data[(i+1)*image.step+j]) - cv::saturate_cast<int>(image.data[i*image.step+j]) ) ;
-			pos_edge += edge * (i+0.5); 
+			pos_edge += edge * (i+1); 
 			pos += edge; 
 
+			//std::cout << "image_data: " << cv::saturate_cast<int>(image.data[(i+1)*image.step+j]) << std::endl ;
 		}
 
 		if(pos_edge > 0){
 			pos_edge = pos_edge/pos;
-			//std::cout << j  << " edge " << pos_edge << std::endl;	
+			
+			std::cout << j  << " edge " << pos_edge << std::endl;	
 			lazer_line.push_back( cv::Point2d(j,pos_edge) );
 			//lazer_line.push_back( cv::Point2d(pos_edge,j) );
 		}
@@ -310,18 +309,17 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 		for(int j=0;j<image.cols;j++)	
 			image.data[i*image.step + j] = 0;
 
-	std::cout << " size : " << lazer_line.size() << std::endl;
+	std::cout << " lazer_line size : " << lazer_line.size() << std::endl;
 
 	for(int i = 0 ; i < lazer_line.size(); i++)
 	{
 
-		image.data[static_cast<int>( (lazer_line[i].y)*image.step + lazer_line[i].x )] = 255;		
+		image.data[( static_cast<int>(lazer_line[i].y)*image.step ) + static_cast<int>(lazer_line[i].x )] = 255;		
 	}
-
 
 	cv::namedWindow("R3");
 	imshow("R3",image);
-	imwrite("./output.bmp",image);
+	//imwrite("./output.bmp",image);
 
 	return lazer_line;
 }
