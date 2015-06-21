@@ -149,30 +149,30 @@ int main( int argc, char* argv[])
 
 
 		cv::Mat q_inv = q.inv();	
-
-		//cv::imshow("lazer",checker_image_lazer[i]);
-		//cv::waitKey(0);
+		cv::Mat I_Mat_inv = I_Mat.inv();
 
 		//calculate lazer points
 		cv::vector<cv::Point2d> lazer_points = DetectBrightLine(checker_image_lazer[i]);
-		std::cout << "lazer_points" << lazer_points << std::endl << std::endl<< std::endl;
 		for(int j=0;j<lazer_points.size();j++){	
 
 			cv::Mat lazer_point = (cv::Mat_<double>(3,1) << lazer_points[j].x , lazer_points[j].y,1);
 			//std::cout << "lazer_point" << lazer_point << std::endl;
+			std::cout << "lazer_point" << lazer_point << std::endl << std::endl<< std::endl;
 
-			cv::Mat I_Mat_inv = I_Mat.inv();
 
 			cv::Mat camera_point;
-			camera_point = k*q_inv;
-			camera_point = camera_point*I_Mat_inv;
-			camera_point = camera_point*lazer_point; 
+			camera_point = k*q_inv*I_Mat_inv*lazer_point;
+			//camera_point = camera_point*I_Mat_inv;
+			//camera_point = camera_point*lazer_point; 
 
 			double div = camera_point.at<double>(3,0);
 
-			//std::cout << "camera_point" << camera_point/div << std::endl;
+			std::cout << "camera_point" << camera_point/div << std::endl;
+			camera_point = camera_point/div;
+			std::cout << "camera_zero" << camera_point.at<double>(0,0) << std::endl;
+			std::cout << "div" << div << std::endl;
 
-			camera_points.push_back( cv::Point3f(camera_point.at<double>(0,0)/div,camera_point.at<double>(1,0)/div,camera_point.at<double>(2,0)/div ));	
+			camera_points.push_back( cv::Point3f(camera_point.at<double>(0,0),camera_point.at<double>(1,0),camera_point.at<double>(2,0) ));	
 		}
 	}
 
@@ -197,7 +197,8 @@ int main( int argc, char* argv[])
 		x_squ_sum += camera_points[i].x*camera_points[i].x;
 		y_squ_sum += camera_points[i].y*camera_points[i].y;
 		z_squ_sum += camera_points[i].z*camera_points[i].z;
-
+			
+		
 		x_y_sum += camera_points[i].x*camera_points[i].y;
 		x_z_sum += camera_points[i].x*camera_points[i].z;
 		y_z_sum += camera_points[i].y*camera_points[i].z;
@@ -212,13 +213,10 @@ int main( int argc, char* argv[])
 
 	int projector_parametter_num = 3;
 
-	cv::Mat M = (cv::Mat_<double>(projector_parametter_num,projector_parametter_num) << x_squ_sum,x_y_sum,x_sum,x_y_sum,y_squ_sum,y_sum,x_sum,y_sum,IMAGE_SIZE*POINTS_FOR_ONEIMAGE);
-	//cv::Mat M = (cv::Mat_<double>(projector_parametter_num,projector_parametter_num) << IMAGE_SIZE*POINTS_FOR_ONEIMAGE,x_sum,y_sum,x_sum,x_squ_sum,x_sum*y_sum,y_sum,x_sum*y_sum,y_squ_sum);
+	cv::Mat M = (cv::Mat_<double>(projector_parametter_num,projector_parametter_num) << x_squ_sum,x_y_sum,x_sum,x_y_sum,y_squ_sum,y_sum,x_sum,y_sum,camera_points.size());
 
 	cv::Mat u = (cv::Mat_<double>(projector_parametter_num,1)<< x_z_sum ,y_z_sum, z_sum);
-	//cv::Mat u = (cv::Mat_<double>(projector_parametter_num,1)<< z_sum ,x_sum*z_sum , y_sum*z_sum);
 
-	//cv::Mat projector_parametter = (cv::Mat_<double>(projector_parametter_num,1) << 0,0,0) ;
 
 	std::cout << "M : " << M<< std::endl;
 	std::cout << "M_inv : " << M.inv() << std::endl;
@@ -287,7 +285,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 		for(int i=0;i<image.rows-1;i+=PIXEL_INTERVAL){
 
 			edge = abs(cv::saturate_cast<int>(image.data[(i+1)*image.step+j]) - cv::saturate_cast<int>(image.data[i*image.step+j]) ) ;
-			pos_edge += edge * (i+1); 
+			pos_edge += edge * (i+0.5); 
 			pos += edge; 
 
 			//std::cout << "image_data: " << cv::saturate_cast<int>(image.data[(i+1)*image.step+j]) << std::endl ;
