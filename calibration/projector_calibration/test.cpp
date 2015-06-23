@@ -20,6 +20,9 @@
 
 cv::vector<cv::Point2d> DetectBrightLine(cv::Mat image);
 
+
+
+
 int main( int argc, char* argv[])
 {
 
@@ -41,10 +44,8 @@ int main( int argc, char* argv[])
 	std::cout << "inner parameter: " << I_Mat << std::endl;
 	std::cout << "distCoeffs: " << D_Mat << std::endl;
 
-
 	for(int i=0;i<IMAGE_SIZE;i++)
 	{
-
 		//load images
 		std::stringstream ss;
 		std::string image_name;
@@ -55,7 +56,6 @@ int main( int argc, char* argv[])
 		cv::undistort(image,undistort,I_Mat,D_Mat);			
 		checker_image.push_back(undistort);
 		//checker_image.push_back(cv::imread(image_name.c_str(),0));
-
 
 		std::stringstream ss1;
 		std::string image_name1;
@@ -80,12 +80,10 @@ int main( int argc, char* argv[])
 	cv::vector<cv::Mat> rotations;
 	cv::vector<cv::Mat> translations;
 
-
 	//find checker patter
 	for(int i=0;i<IMAGE_SIZE;i++)
 	{
 		//find corner
-		//std::cout << "finding chessboard corners..." << std::endl;
 		if(cv::findChessboardCorners (checker_image[i], checker_pattern_size, image_points[i] , cv::CALIB_CB_ADAPTIVE_THRESH + cv::CALIB_CB_NORMALIZE_IMAGE + cv::CALIB_CB_FAST_CHECK ) )
 		{
 
@@ -103,7 +101,6 @@ int main( int argc, char* argv[])
 		}
 
 	}
-
 
 	//registrate world points
 	for(int i=0;i<IMAGE_SIZE;i++){
@@ -139,13 +136,11 @@ int main( int argc, char* argv[])
 		cv::Mat r1 = rotations_mat[i].col(1);	
 		cv::Mat t = translations[i]; 
 
-
 		//translate points at camera axis
 		cv::Mat q = (cv::Mat_<double>(3,3)<<  r0.at<double>(0,0),  r1.at<double>(0,0),  t.at<double>(0,0),  r0.at<double>(1,0),  r1.at<double>(1,0),  t.at<double>(1,0), r0.at<double>(2,0),  r1.at<double>(2,0),  t.at<double>(2,0)) ;
 
 
 		cv::Mat k = (cv::Mat_<double>(4,3) << q.at<double>(0,0)  , q.at<double>(0,1)  , q.at<double>(0,2)  , q.at<double>(1,0)  , q.at<double>(1,1)  , q.at<double>(1,2)  , q.at<double>(2,0)  , q.at<double>(2,1)  , q.at<double>(2,2)  , 0 , 0, 1  );
-
 
 
 		cv::Mat q_inv = q.inv();	
@@ -156,14 +151,13 @@ int main( int argc, char* argv[])
 		for(int j=0;j<lazer_points.size();j++){	
 
 			cv::Mat lazer_point = (cv::Mat_<double>(3,1) << lazer_points[j].x , lazer_points[j].y,1);
-			//std::cout << "lazer_point" << lazer_point << std::endl;
+			
 			std::cout << "lazer_point" << lazer_point << std::endl << std::endl<< std::endl;
 
 
 			cv::Mat camera_point;
 			camera_point = k*q_inv*I_Mat_inv*lazer_point;
-			//camera_point = camera_point*I_Mat_inv;
-			//camera_point = camera_point*lazer_point; 
+
 
 			double div = camera_point.at<double>(3,0);
 
@@ -187,7 +181,6 @@ int main( int argc, char* argv[])
 	int x_z_sum =0;
 	int y_z_sum =0;
 
-
 	for(int i=0;i<camera_points.size();i++){
 
 		x_sum += camera_points[i].x;
@@ -198,19 +191,15 @@ int main( int argc, char* argv[])
 		y_squ_sum += camera_points[i].y*camera_points[i].y;
 		z_squ_sum += camera_points[i].z*camera_points[i].z;
 			
-		//for(int j=0;j<camera_points.size();j++){	
-			
 		x_y_sum += camera_points[i].x*camera_points[i].y;
 		x_z_sum += camera_points[i].x*camera_points[i].z;
 		y_z_sum += camera_points[i].y*camera_points[i].z;
-		//}
+	
 	}
-
 
 	std::cout << "x_sum : " << x_sum<< std::endl;
 	std::cout << "y_sum : " << y_sum<< std::endl;
 	std::cout << "z_sum : " << z_sum<< std::endl;
-
 
 	int projector_parametter_num = 3;
 
@@ -218,25 +207,20 @@ int main( int argc, char* argv[])
 
 	cv::Mat u = (cv::Mat_<double>(projector_parametter_num,1)<< x_z_sum ,y_z_sum, z_sum);
 
-
 	std::cout << "M : " << M<< std::endl;
 	std::cout << "M_inv : " << M.inv() << std::endl;
 	std::cout << "u : " << u<< std::endl;
 
-
 	cv::Mat projector_parametter;  
 	projector_parametter = M.inv()*u;
 
-
 	std::cout << "projector_parametter : " << projector_parametter << std::endl;
-
 
 	//ax+by+cz+d = 0
 	double plane_c = 1/sqrt(projector_parametter.at<double>(0,0)*projector_parametter.at<double>(0,0) + projector_parametter.at<double>(1,0)*projector_parametter.at<double>(1,0) + 1.0);
 	double plane_a = -projector_parametter.at<double>(0,0)*plane_c;
 	double plane_b = -projector_parametter.at<double>(1,0)*plane_c;
 	double plane_d = projector_parametter.at<double>(2,0)*plane_c;
-
 
 	std::cout << "plane_a : " << plane_a << std::endl;
 	std::cout << "plane_b : " << plane_b << std::endl;
@@ -256,39 +240,31 @@ int main( int argc, char* argv[])
 
 }
 
-
-
-
 cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 {
 
 	cv::Mat output_image(image.size(),image.type());
-	//cv::Mat output_image2(image.size(),image.type());
 
 	cv::imshow("r2",image);	
 	double threshold = 200;	
 	cv::threshold(image,image,threshold,0,cv::THRESH_TOZERO);	
-
 
 	//cv::Sobel(output_image,output_image,1,0,3);
 	//cv::Sobel(output_image,output_image,CV_32F,1,1);
 	cv::imshow("r3",image);	
 	cv::waitKey(0);
 
-	cv::vector<cv::Point2d> lazer_line ;
+	cv::vector<cv::Point2d> lazer_line;
 
 	for(int j=0;j<image.step;j++){
 		int edge = 0;
 		int pos = 0;
-		double pos_edge = 0 ; 	
+		double pos_edge = 0; 	
 
 		for(int i=0;i<image.rows-1;i+=PIXEL_INTERVAL){
-
 			edge = abs(cv::saturate_cast<int>(image.data[(i+1)*image.step+j]) - cv::saturate_cast<int>(image.data[i*image.step+j]) ) ;
 			pos_edge += edge * (i+0.5); 
 			pos += edge; 
-
-			//std::cout << "image_data: " << cv::saturate_cast<int>(image.data[(i+1)*image.step+j]) << std::endl ;
 		}
 
 		if(pos_edge > 0){
@@ -300,7 +276,6 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 		}
 		//else
 		//lazer_line.push_back( cv::Point2d(0,j) );
-
 	}	
 
 	for(int i=0;i<image.rows;i++)	
