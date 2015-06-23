@@ -12,7 +12,7 @@
 #define CHESS_ROW 9
 #define CHESS_COLUM 6
 
-#define PIXEL_INTERVAL 1
+#define PIXEL_INTERVAL 10
 #define POINTS_FOR_ONEIMAGE 1 
 
 #define XI_W 648
@@ -20,14 +20,10 @@
 
 cv::vector<cv::Point2d> DetectBrightLine(cv::Mat image);
 
-
-
-
 int main( int argc, char* argv[])
 {
 
 	//load the raw and lazer image 
-
 	cv::vector<cv::Mat> checker_image;
 	//cv::vector<cv::Mat> checker_image(XI_H,XI_W,CV_8UC1);
 	cv::vector<cv::Mat> checker_image_lazer;
@@ -117,6 +113,8 @@ int main( int argc, char* argv[])
 		cv::Mat dammy;
 		cv::solvePnP(world_points[i],image_points[i],I_Mat,dammy,tmp_rotation,tmp_translation);
 		rotations.push_back(tmp_rotation);
+		std::cout << "rotation:"<< tmp_rotation<< std::endl;
+		std::cout << "translation:"<< tmp_translation << std::endl;
 		translations.push_back(tmp_translation);	
 	}
 
@@ -124,11 +122,10 @@ int main( int argc, char* argv[])
 
 	for(int i=0;i<IMAGE_SIZE;i++){
 		cv::Rodrigues(rotations[i],rotations_mat[i]);
-	}	
-	std::cout << "rotation : " <<  rotations[0]<< std::endl;
-	std::cout << "rotation mat : " <<  rotations_mat[0]<< std::endl;
-	std::cout << "translation : " <<  translations[0]<< std::endl;
+	std::cout << "translation : " <<  translations[i]<< std::endl;
+	}
 	cv::vector <cv::Point3f> camera_points;
+	
 
 	for(int i=0;i<IMAGE_SIZE;i++){
 
@@ -240,6 +237,8 @@ int main( int argc, char* argv[])
 
 }
 
+
+
 cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 {
 
@@ -249,8 +248,6 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 	double threshold = 200;	
 	cv::threshold(image,image,threshold,0,cv::THRESH_TOZERO);	
 
-	//cv::Sobel(output_image,output_image,1,0,3);
-	//cv::Sobel(output_image,output_image,CV_32F,1,1);
 	cv::imshow("r3",image);	
 	cv::waitKey(0);
 
@@ -296,5 +293,4 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 
 	return lazer_line;
 }
-
 
