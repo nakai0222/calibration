@@ -12,7 +12,7 @@
 #define CHESS_ROW 9
 #define CHESS_COLUM 6
 
-#define PIXEL_INTERVAL 10
+#define PIXEL_INTERVAL 1
 #define POINTS_FOR_ONEIMAGE 1 
 
 #define XI_W 648
@@ -216,18 +216,19 @@ int main( int argc, char* argv[])
 	std::cout << "projector_parametter : " << projector_parametter << std::endl;
 
 	//ax+by+cz+d = 0
-	
+	/*	
 	double plane_c = 1/sqrt(projector_parametter.at<double>(0,0)*projector_parametter.at<double>(0,0) + projector_parametter.at<double>(1,0)*projector_parametter.at<double>(1,0) + 1.0);
 	double plane_a = -projector_parametter.at<double>(0,0)*plane_c;
 	double plane_b = -projector_parametter.at<double>(1,0)*plane_c;
 	double plane_d = -projector_parametter.at<double>(2,0)*plane_c;
+	*/
+
 	
-	/*		
-	double plane_b = projector_parametter.at<double>(2,0); 
-	double plane_d = projector_parametter.at<double>(0,0);
 	double plane_a = projector_parametter.at<double>(1,0);
+	double plane_b = projector_parametter.at<double>(2,0); 
 	double plane_c = -1; 
-	*/	
+	double plane_d = projector_parametter.at<double>(0,0);
+		
 	
 		
 	std::cout << "plane_a : " << plane_a << std::endl;
