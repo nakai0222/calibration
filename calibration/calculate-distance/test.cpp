@@ -36,7 +36,6 @@ int main( int argc, char* argv[])
 	fs["intrinsicMat"] >> I_Mat;
 	fs["distCoeffs"] >> D_Mat;
 
-//cv::vector<cv::Mat> lazer_image(XI_H,XI_W,CV_8UC1);
 
 	for(int i=0;i<IMAGE_SIZE;i++)
 	{
@@ -62,7 +61,6 @@ int main( int argc, char* argv[])
 	double plane_d;	
 
 	cv::FileStorage fs_projector("projector.xml",CV_STORAGE_READ);
-	//cv::FileStorage fs("camera.xml",cv::FileStorage::READ);
 
 	fs_projector["plane_a"] >>plane_a; 
 	fs_projector["plane_b"] >>plane_b; 
@@ -77,10 +75,8 @@ int main( int argc, char* argv[])
 	//calculate lazer points
 	cv::vector<cv::Point2d> lazer_points= DetectBrightLine(lazer_image[0]);
 
-
 	//calculate location information
 	cv::vector<cv::Point3f> location_inf;
-
 
 	double l = plane_d/plane_a;
 	double sita = std::atan(-plane_c/plane_a);
@@ -120,16 +116,12 @@ int main( int argc, char* argv[])
 cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 {
 
-
 	cv::Mat output_image(image.size(),image.type());
 	//cv::Mat output_image2(image.size(),image.type());
 
 	double threshold = 200;	
-	//cv::threshold(image,output_image,threshold,0,cv::THRESH_TOZERO);	
 
 
-	//cv::Sobel(output_image,output_image,1,0,3);
-	//cv::Sobel(output_image,output_image,CV_32F,1,1);
 	cv::vector<cv::Point2d> lazer_line ;
 
 	for(int j=0;j<image.step;j++){
@@ -161,4 +153,3 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 
 
 
-#include <opencv2/core/core.hpp>
