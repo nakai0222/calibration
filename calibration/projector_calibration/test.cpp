@@ -123,6 +123,7 @@ int main( int argc, char* argv[])
 	for(int i=0;i<IMAGE_SIZE;i++){
 		cv::Rodrigues(rotations[i],rotations_mat[i]);
 	std::cout << "translation : " <<  translations[i]<< std::endl;
+	std::cout << "rotation_mat: " <<  rotations_mat[i]<< std::endl;
 	}
 	cv::vector <cv::Point3f> camera_points;
 	
@@ -145,6 +146,7 @@ int main( int argc, char* argv[])
 
 		//calculate lazer points
 		cv::vector<cv::Point2d> lazer_points = DetectBrightLine(checker_image_lazer[i]);
+
 		for(int j=0;j<lazer_points.size();j++){	
 
 			cv::Mat lazer_point = (cv::Mat_<double>(3,1) << lazer_points[j].x , lazer_points[j].y,1);
@@ -155,28 +157,27 @@ int main( int argc, char* argv[])
 			cv::Mat camera_point;
 			camera_point = k*q_inv*I_Mat_inv*lazer_point;
 
-
 			double div = camera_point.at<double>(3,0);
 
-			std::cout << "camera_point" << camera_point/div << std::endl;
+			std::cout << "div" << div << std::endl;
+			std::cout << "camera_point" << camera_point << std::endl;
 			camera_point = camera_point/div;
 			std::cout << "camera_zero" << camera_point.at<double>(0,0) << std::endl;
-			std::cout << "div" << div << std::endl;
 
 			camera_points.push_back( cv::Point3f(camera_point.at<double>(0,0),camera_point.at<double>(1,0),camera_point.at<double>(2,0) ));	
 		}
 	}
 
 	//calculate plane parameter
-	int x_sum = 0;
-	int y_sum = 0;
-	int z_sum = 0;
-	int x_squ_sum =0;
-	int y_squ_sum =0;
-	int z_squ_sum =0;
-	int x_y_sum =0;
-	int x_z_sum =0;
-	int y_z_sum =0;
+	double x_sum = 0;
+	double y_sum = 0;
+	double z_sum = 0;
+	double x_squ_sum =0;
+	double y_squ_sum =0;
+	double z_squ_sum =0;
+	double x_y_sum =0;
+	double x_z_sum =0;
+	double y_z_sum =0;
 
 	for(int i=0;i<camera_points.size();i++){
 
@@ -191,7 +192,6 @@ int main( int argc, char* argv[])
 		x_y_sum += camera_points[i].x*camera_points[i].y;
 		x_z_sum += camera_points[i].x*camera_points[i].z;
 		y_z_sum += camera_points[i].y*camera_points[i].z;
-	
 	}
 
 	std::cout << "x_sum : " << x_sum<< std::endl;
@@ -200,9 +200,11 @@ int main( int argc, char* argv[])
 
 	int projector_parametter_num = 3;
 
-	cv::Mat M = (cv::Mat_<double>(projector_parametter_num,projector_parametter_num) << x_squ_sum,x_y_sum,x_sum,x_y_sum,y_squ_sum,y_sum,x_sum,y_sum,camera_points.size());
+	cv::Mat M = (cv::Mat_<double>(projector_parametter_num,projector_parametter_num) << camera_points.size(),x_sum,y_sum,x_sum,x_squ_sum,x_y_sum,y_sum,x_y_sum,y_squ_sum);
+	//cv::Mat M = (cv::Mat_<double>(projector_parametter_num,projector_parametter_num) << x_squ_sum,x_y_sum,x_sum,x_y_sum,y_squ_sum,y_sum,x_sum,y_sum,camera_points.size());
 
-	cv::Mat u = (cv::Mat_<double>(projector_parametter_num,1)<< x_z_sum ,y_z_sum, z_sum);
+	cv::Mat u = (cv::Mat_<double>(projector_parametter_num,1)<< z_sum ,x_z_sum, y_z_sum);
+	//cv::Mat u = (cv::Mat_<double>(projector_parametter_num,1)<< x_z_sum ,y_z_sum, z_sum);
 
 	std::cout << "M : " << M<< std::endl;
 	std::cout << "M_inv : " << M.inv() << std::endl;
@@ -214,11 +216,20 @@ int main( int argc, char* argv[])
 	std::cout << "projector_parametter : " << projector_parametter << std::endl;
 
 	//ax+by+cz+d = 0
+	/*
 	double plane_c = 1/sqrt(projector_parametter.at<double>(0,0)*projector_parametter.at<double>(0,0) + projector_parametter.at<double>(1,0)*projector_parametter.at<double>(1,0) + 1.0);
 	double plane_a = -projector_parametter.at<double>(0,0)*plane_c;
 	double plane_b = -projector_parametter.at<double>(1,0)*plane_c;
 	double plane_d = projector_parametter.at<double>(2,0)*plane_c;
-
+	*/
+		
+	double plane_b = projector_parametter.at<double>(2,0); 
+	double plane_d = projector_parametter.at<double>(0,0);
+	double plane_a = projector_parametter.at<double>(1,0);
+	double plane_c = -1; 
+	
+	
+		
 	std::cout << "plane_a : " << plane_a << std::endl;
 	std::cout << "plane_b : " << plane_b << std::endl;
 	std::cout << "plane_c : " << plane_c << std::endl;
@@ -253,6 +264,12 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 
 	cv::vector<cv::Point2d> lazer_line;
 
+
+
+
+
+
+	
 	for(int j=0;j<image.step;j++){
 		int edge = 0;
 		int pos = 0;
@@ -269,12 +286,12 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 			
 			std::cout << j  << " edge " << pos_edge << std::endl;	
 			lazer_line.push_back( cv::Point2d(j,pos_edge) );
-			//lazer_line.push_back( cv::Point2d(pos_edge,j) );
+			//lazer_line.push_back( cv::Point2d(j,pos_edge) );
 		}
 		//else
 		//lazer_line.push_back( cv::Point2d(0,j) );
 	}	
-
+	
 	for(int i=0;i<image.rows;i++)	
 		for(int j=0;j<image.cols;j++)	
 			image.data[i*image.step + j] = 0;
