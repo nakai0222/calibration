@@ -200,11 +200,11 @@ int main( int argc, char* argv[])
 
 	int projector_parametter_num = 3;
 
-	//cv::Mat M = (cv::Mat_<double>(projector_parametter_num,projector_parametter_num) << camera_points.size(),x_sum,y_sum,x_sum,x_squ_sum,x_y_sum,y_sum,x_y_sum,y_squ_sum);
-	cv::Mat M = (cv::Mat_<double>(projector_parametter_num,projector_parametter_num) << x_squ_sum,x_y_sum,x_sum,x_y_sum,y_squ_sum,y_sum,x_sum,y_sum,camera_points.size());
+	cv::Mat M = (cv::Mat_<double>(projector_parametter_num,projector_parametter_num) << camera_points.size(),x_sum,y_sum,x_sum,x_squ_sum,x_y_sum,y_sum,x_y_sum,y_squ_sum);
+	//cv::Mat M = (cv::Mat_<double>(projector_parametter_num,projector_parametter_num) << x_squ_sum,x_y_sum,x_sum,x_y_sum,y_squ_sum,y_sum,x_sum,y_sum,camera_points.size());
 
-	//cv::Mat u = (cv::Mat_<double>(projector_parametter_num,1)<< z_sum ,x_z_sum, y_z_sum);
-	cv::Mat u = (cv::Mat_<double>(projector_parametter_num,1)<< x_z_sum ,y_z_sum, z_sum);
+	cv::Mat u = (cv::Mat_<double>(projector_parametter_num,1)<< z_sum ,x_z_sum, y_z_sum);
+	//cv::Mat u = (cv::Mat_<double>(projector_parametter_num,1)<< x_z_sum ,y_z_sum, z_sum);
 
 	std::cout << "M : " << M<< std::endl;
 	std::cout << "M_inv : " << M.inv() << std::endl;
