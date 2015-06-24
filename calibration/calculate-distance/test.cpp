@@ -7,8 +7,7 @@
 #include <string>
 #include <cmath>
 
-#define IMAGE_SIZE 1
-#define LAZER_POINTS 5
+#define IMAGE_SIZE 2
 #define CHESS_SIZE 21
 #define CHESS_ROW 9
 #define CHESS_COLUM 6
@@ -41,7 +40,8 @@ int main( int argc, char* argv[])
 		//load images
 		std::stringstream ss;
 		std::string image_name;
-		ss <<  i << "_.png";
+		ss <<   "1_.png";
+		//ss <<  i << "_.png";
 		image_name = ss.str();	
 		cv::Mat image = cv::imread(image_name.c_str(),0);
 		cv::Mat undistort;
