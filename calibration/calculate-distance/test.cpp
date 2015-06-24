@@ -115,38 +115,58 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 {
 
 	cv::Mat output_image(image.size(),image.type());
-	//cv::Mat output_image2(image.size(),image.type());
 
+	cv::imshow("r2",image);	
 	double threshold = 200;	
+	cv::threshold(image,image,threshold,0,cv::THRESH_TOZERO);	
+
+	cv::imshow("r3",image);	
+	cv::waitKey(0);
+
+	cv::vector<cv::Point2d> lazer_line;
 
 
-	cv::vector<cv::Point2d> lazer_line ;
-
+	
 	for(int j=0;j<image.step;j++){
 		int edge = 0;
-		double pos_edge = 0;
 		int pos = 0;
+		double pos_edge = 0; 	
 
 		for(int i=0;i<image.rows-1;i+=PIXEL_INTERVAL){
+			edge = abs(cv::saturate_cast<int>(image.data[(i+1)*image.step+j]) - cv::saturate_cast<int>(image.data[i*image.step+j]) ) ;
+			pos_edge += edge * (i+0.5); 
+			pos += edge; 
+		}
 
-				edge =abs( cv::saturate_cast<int>(image.data[(i+1)*image.step+j]) - cv::saturate_cast<int>(image.data[i*image.step+j]) ) ;
-				pos += edge ; 
-				pos_edge += edge * (i+0.5); 
-
-			}
-
-			if(pos_edge > 0){
+		if(pos_edge > 0){
 			pos_edge = pos_edge/pos;
-			//push back gravity point
+			
+			std::cout << j  << " edge " << pos_edge << std::endl;	
 			lazer_line.push_back( cv::Point2d(j,pos_edge) );
-			}
+			//lazer_line.push_back( cv::Point2d(j,pos_edge) );
+		}
+		//else
+		//lazer_line.push_back( cv::Point2d(0,j) );
+	}	
+	
+	for(int i=0;i<image.rows;i++)	
+		for(int j=0;j<image.cols;j++)	
+			image.data[i*image.step + j] = 0;
+
+	std::cout << " lazer_line size : " << lazer_line.size() << std::endl;
+
+	for(int i = 0 ; i < lazer_line.size(); i++)
+	{
+
+		image.data[( static_cast<int>(lazer_line[i].y)*image.step ) + static_cast<int>(lazer_line[i].x )] = 255;		
 	}
+
+	cv::namedWindow("R3");
+	imshow("R3",image);
+	//imwrite("./output.bmp",image);
 
 	return lazer_line;
 }
-
-
-
 
 
 
