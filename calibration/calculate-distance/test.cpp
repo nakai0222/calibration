@@ -18,7 +18,6 @@
 #define XI_H 488
 
 
-
 cv::vector<cv::Point2d> DetectBrightLine(cv::Mat image);
 
 int main( int argc, char* argv[])
@@ -35,7 +34,6 @@ int main( int argc, char* argv[])
 
 	fs["intrinsicMat"] >> I_Mat;
 	fs["distCoeffs"] >> D_Mat;
-
 
 	for(int i=0;i<IMAGE_SIZE;i++)
 	{
