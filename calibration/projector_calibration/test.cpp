@@ -7,7 +7,7 @@
 #include <string>
 #include <cmath>
 
-#define IMAGE_SIZE 5
+#define IMAGE_SIZE 1
 #define CHESS_SIZE 21
 #define CHESS_ROW 9
 #define CHESS_COLUM 6
@@ -160,9 +160,9 @@ int main( int argc, char* argv[])
 			double div = camera_point.at<double>(3,0);
 
 			std::cout << "div" << div << std::endl;
-			std::cout << "camera_point" << camera_point << std::endl;
 			camera_point = camera_point/div;
-			std::cout << "camera_zero" << camera_point.at<double>(0,0) << std::endl;
+			std::cout << "camera_point" << camera_point << std::endl;
+			//std::cout << "camera_zero" << camera_point.at<double>(0,0) << std::endl;
 
 			camera_points.push_back( cv::Point3f(camera_point.at<double>(0,0),camera_point.at<double>(1,0),camera_point.at<double>(2,0) ));	
 		}
