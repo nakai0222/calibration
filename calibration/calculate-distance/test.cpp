@@ -23,7 +23,6 @@ int main( int argc, char* argv[])
 {
 
 	//load the raw and lazer image 
-
 	cv::vector<cv::Mat> lazer_image;
 	/*load inside and outside parameter at camera*/
 	cv::Mat I_Mat ; 
@@ -89,7 +88,6 @@ int main( int argc, char* argv[])
 
 	for(int i=0;i<lazer_points.size();i++){
 
-
 		double location_z = ( l /( (-plane_c/plane_a) - ( ((lazer_points[i].x - u0) - (ganma/beta ) * (lazer_points[i].y - v0) ) / alfa ) - ((plane_b/plane_a)*(lazer_points[i].y - v0))/(beta) ) );
 		//location_inf.z = ( l / (std::tan(sita) - ( ((lazer_points[i].x - u0) - (ganma/beta    ) * (lazer_points[i].y - v0) ) / alfa ) + std::tan(fai)*(lazer_points[i].y - v0)/beta ) );
 
@@ -103,7 +101,6 @@ int main( int argc, char* argv[])
 
 
 	}
-
 
 	std::cout << "location : " << location_inf << std::endl;
 
@@ -167,7 +164,5 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 
 	return lazer_line;
 }
-
-
 
 
