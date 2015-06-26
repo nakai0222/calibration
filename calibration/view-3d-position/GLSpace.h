@@ -2,13 +2,14 @@
 
 #include <cmath>
 #include <iostream>
-//#include <freeglut.h>
-#include <OpenGL/gl.h>
-#include <GL/freeglut.h>
+//#include <GL/glut.h>
+//#include <GL/gl.h>
+#include <GL/freeglut.h> 
 
 
 #define PLOTSIZE (2)
 #define SCALE (2.0 * 3.14159265358979323846)  // マウスの相対位置→回転角の換算係数
+
 
 namespace GLSpace {
 
@@ -17,12 +18,12 @@ namespace GLSpace {
 	//--------------------//
 	//   複数スレッド用   //
 	//--------------------//
-#define GL_COUNT 2
+	#define GL_COUNT 2
 	int WinID[GL_COUNT]; //ウィンドウID
 	const char *WindowName[]={"Window 1", "Window 2"};
 
 	/*****************************************************
-	 *	描画関数の変数初期化
+	 *   描画関数の変数初期化
 	 ******************************************************/
 	int WindowPositionX = 800;  //生成するウィンドウ位置のX座標
 	int WindowPositionY = 0;  //生成するウィンドウ位置のY座標
@@ -47,9 +48,10 @@ namespace GLSpace {
 	double z_slide =500/z_scale;
 
 	/*****************************************************
-	 *	描画に関する関数のプロトタイプ宣言
+	 *   描画に関する関数のプロトタイプ宣言
 	 ******************************************************/
 
+	void timer(int value);
 	void Initialize(void);
 	void Idle(void);
 	void Reshape(int _width, int _height);
@@ -57,7 +59,7 @@ namespace GLSpace {
 	void Ground(void);  //大地の描画
 
 	void qmul(double r[], const double p[], const double q[]);
-	static void qrot(double r[], double q[]);
+	void qrot(double r[], double q[]);
 	void mouse_motion(int x, int y);
 	void mouse_on(int button, int state, int x, int y);
 	void keyboard(unsigned char key, int x, int y);
@@ -65,6 +67,7 @@ namespace GLSpace {
 
 	bool hsv2rgbColor(const int h_tmp, const int maxL, const int minL, const double s=255, const double v=255);
 	bool hsv2rgb(double &r, double &g, double &b, const int h_tmp, const int maxL, const int minL, const double s=255, const double v=255);
+
 
 	void setRTs(double rt0, double rt1, double rt2, double rt3, double rt4, double rt5, double rt6, double rt7, double rt8, double rt9, double rt10, double rt11, double rt12, double rt13, double rt14, double rt15, double _z_slide);
 	void showRTs();
@@ -76,12 +79,14 @@ namespace GLSpace {
 
 
 
+	
+
 	void timer(int value) {
 		glutPostRedisplay();
 		glutTimerFunc(LoopTime, timer , 0);
 	}
 	/*****************************************************
-	 *	Initialize関数
+	 *   Initialize関数
 	 ******************************************************/
 	void Initialize(void){
 		glClearColor(0.0,0.0,0.0,0.0);
@@ -100,7 +105,6 @@ namespace GLSpace {
 
 		//glEnable(GL_CULL_FACE);
 		//glCullFace(GL_BACK);
-
 
 		//透視変換行列の設定------------------------------
 		glMatrixMode(GL_PROJECTION);//行列モードの設定（GL_PROJECTION : 透視変換行列の設定、GL_MODELVIEW：モデルビュー変換行列）
@@ -152,7 +156,7 @@ namespace GLSpace {
 			double ar = a * SCALE * 0.5 * 0.5;
 			double as = sin(ar) / a;
 			if(latest_mouse==0){
-				double dq[4] = { cos(ar), dy * as, 0.0, -dx * as};	// 現状の見方ではこれがわかりやすいか
+				double dq[4] = { cos(ar), dy * as, 0.0, -dx * as};  // 現状の見方ではこれがわかりやすいか
 				qmul(tq, dq, cq); // 回転の初期値 cq に dq を掛けて回転を合成
 				qrot(rt, tq);  // クォータニオンから回転の変換行列を求める
 			}else if(latest_mouse==2){
@@ -161,7 +165,7 @@ namespace GLSpace {
 				double sin_rq=((x-WindowWidth/2.0)*(cy-WindowHeight/2.0)-(y-WindowHeight/2.0)*(cx- WindowWidth/2.0))/(OAxOB);
 				double cos_rq=((x-WindowWidth/2.0)*(cx- WindowWidth/2.0)+(y-WindowHeight/2.0)*(cy-WindowHeight/2.0))/(OAxOB);
 
-				double dq[4] = {sqrt((1+cos_rq)/2), 0.0, sqrt((1-cos_rq)/2), 0.0};	// 現状の見方ではこれがわかりやすいか
+				double dq[4] = {sqrt((1+cos_rq)/2), 0.0, sqrt((1-cos_rq)/2), 0.0};  // 現状の見方ではこれがわかりやすいか
 				if(sin_rq<0)dq[0]*=-1;
 				qmul(tq, dq, cq); // 回転の初期値 cq に dq を回転を合成
 				qrot(rt, tq);  // クォータニオンから回転の変換行列を求める
@@ -247,7 +251,7 @@ namespace GLSpace {
 	}
 
 	/*****************************************************
-	 *	大地の描画
+	 *   大地の描画
 	 ******************************************************/
 	void Ground(void) {
 
@@ -295,7 +299,7 @@ namespace GLSpace {
 
 		r[ 0] = 1.0 - y2 - z2;  r[ 1] = xy + zw;       r[ 2] = zx - yw;
 		r[ 4] = xy - zw;        r[ 5] = 1.0 - z2 - x2; r[ 6] = yz + xw;
-		r[ 8] = zx + yw;		r[ 9] = yz - xw;       r[10] = 1.0 - x2 - y2;
+		r[ 8] = zx + yw;        r[ 9] = yz - xw;       r[10] = 1.0 - x2 - y2;
 		r[ 3] = r[ 7] = r[11] = r[12] = r[13] = r[14] = 0.0;
 		r[15] = 1.0;
 	}
@@ -434,7 +438,7 @@ namespace GLSpace {
 	void moveCameraZSlide(const float move){z_slide+=move;}
 
 	/*****************************************************
-	 *	点群を表示する関数
+	 *   点群を表示する関数
 	 ******************************************************/
 	// 自分で実装すること
 	// void Display(void)
@@ -442,7 +446,9 @@ namespace GLSpace {
 
 #define POINTWIDTH 18
 #define POINTHEIGHT 17
+	
 	void Display(void) {
+
 		glClearColor(0.0,0.0,0.0,0.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //バッファの消去
 		//モデルビュー変換行列の設定--------------------------
@@ -466,20 +472,29 @@ namespace GLSpace {
 		///////////////////////////////////////////////////////
 		glPointSize(plot);
 		glBegin(GL_POINTS);
-		if(colorflag)glColor3d(0.0,0.0,0.0);
-		else glColor3d(1.0,1.0,1.0);
-		glVertex3d(0.0,0.0,0.0);//原点のノイズ除去
-		for(int i=0;i<x_global.size();i++){
-			glColor3d(1.0,1.0,0.0);
-			hsv2rgbColor(z_global[i]);
-			glVertex3d(x_global[i]/l_scale,y_global[i]/l_scale,z_global[i]/z_scale-z_slide);
-		}
-		glEnd();
+		
+	
+		/*	
+		   if(colorflag)glColor3d(0.0,0.0,0.0);
+		   else glColor3d(1.0,1.0,1.0);
+		   glVertex3d(0.0,0.0,0.0);//原点のノイズ除去
+		   for(int i=0;i<x_global.size();i++){
+		   glColor3d(1.0,1.0,0.0);
+		   hsv2rgbColor(z_global[i]);
+		   glVertex3d(x_global[i]/l_scale,y_global[i]/l_scale,z_global[i]/z_scale-z_slide);
+
+		   }
+		*/
+	
+
+			
+		//glEnd();
 		Ground();
 		glutSwapBuffers(); //glutInitDisplayMode(GLUT_DOUBLE)でダブルバッファリングを利用可
+
 	}
 	/*****************************************************
-	 *	キーボード入力
+	 *   キーボード入力
 	 ******************************************************/
 	// 自分で実装すること 
 	// void keyboard(unsigned char key, int x, int y)
@@ -538,7 +553,7 @@ namespace GLSpace {
 			HDC Hdc;
 			GLFONT(wchar_t *fontname, int size);
 			void DrawStringW(int x,int y,int z,wchar_t *format, ...);
-	};
+	}*font;
 	//コンストラクタ フォント作成
 	GLFONT::GLFONT(wchar_t *fontname, int size)
 	{
@@ -597,5 +612,4 @@ namespace GLSpace {
 		list = 0;
 		Length = 0;
 	}
-	GLFONT *font;
-	};
+	};	
