@@ -26,42 +26,17 @@ int main(int argc, char *argv[])
 	//ループ
 	for(int i=0;i<image_size;i++){
 
+		//画像変更
+		3d_points_data.pull(3d_points[i]);	
 		//図表示
 		glutPostRedisplay(); //glutDisplayFunc()を１回実行する
 		cv::waitKey(0);
-
+	
 	}
 
 	return 0;
-
-
 }
 
-
-void GLSpace::draw3DPoints(cv::vector<cv::Point3d> 3d_points) {
-
-
-
-	glPointSize(PLOTSIZE);
-	glBegin(GL_POINTS);
-
-
-	glColor3d(0.0,0.0,0.0);
-
-
-	glVertex3d(0.0,0.0,0.0);//原点のノイズ除去
-	for(int i=0;i<3d_points.size();i++){
-		glColor3d(1.0,1.0,0.0);
-		//hsv2rgbColor(z_global[i]);
-		hsv2rgbColor(3d_points[i].z);
-		//glVertex3d(x_global[i]/l_scale,y_global[i]/l_scale,z_global[i]/z_scale-z_slide);
-		glVertex3d(3d_points[i].x/l_scale,3d_points[i].y/l_scale,3d_points[i].z/z_scale-z_slide);
-	}
-
-
-	glEnd();
-
-}
 
 
 
@@ -77,7 +52,54 @@ void GLSpace::draw3DPoints(cv::vector<cv::Point3d> 3d_points) {
 #include <string>
 #include <cmath>
 //GLSpace(namespace)の中へ
-void draw3DPoints(cv::vector<cv::Point3d> 3d_points); 
+
+class 3dPointsDraw{
+
+	public:
+	cv::vector<cv::Point3d> 3d_points_data;
+	void pull(cv::vector<cv::Point3d> 3d_points);	
+	void drawPoints();
+	
+
+}3d_points_draw;
+
+
+void 3dPointsDraw::pull(cv::vector<cv::Point3d> 3d_points){
+
+	for(int i=0;i<3d_points.size();i++)
+	this->3d_points_data.push_back(3d_points[i]);
+
+	this->3d_points_data = 3d_points;
+
+}	
+
+
+
+//３次元点群描画関数
+void 3dPointsDraw::drawPoints() {
+
+	glPointSize(PLOTSIZE);
+	glBegin(GL_POINTS);
+
+
+	glColor3d(0.0,0.0,0.0);
+
+
+	glVertex3d(0.0,0.0,0.0);//原点のノイズ除去
+	for(int i=0;i<3d_points.size();i++){
+		glColor3d(1.0,1.0,0.0);
+		//hsv2rgbColor(z_global[i]);
+		hsv2rgbColor(this->3d_points_data[i].z);
+		//glVertex3d(x_global[i]/l_scale,y_global[i]/l_scale,z_global[i]/z_scale-z_slide);
+		glVertex3d(this->3d_points_data[i].x/l_scale,this->3d_points_data[i].y/l_scale,this->3d_points_data[i].z/z_scale-z_slide);
+	}
+
+
+	glEnd();
+}
+
+
+
 
 //Display置き換え
 void Display(void) {
@@ -107,7 +129,7 @@ void Display(void) {
 	glBegin(GL_POINTS);
 
 
-	draw3DPoints(cv::vector<cv::Point3d> 3d_points); 
+	3d_points_draw::drawPoints(); 
 
 	
 	Ground();
