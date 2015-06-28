@@ -9,6 +9,11 @@
 #include <string>
 
 
+#define XI_W 648
+#define XI_H 488
+
+
+
 int main(){
 
 	cv::Mat cimgl(XI_H,XI_W,CV_8UC1);
@@ -19,8 +24,11 @@ int main(){
 	cv::Mat output_image(cimgl.size(),cimgl.type());
 
 	std::stringstream ss;
-	ss << "okami.jpg";
+	ss << "earth.jpg";
 	std::string filename = ss.str();
+
+	std::cout << "rows" << cimgl.rows;
+
 
 	cimgl = cv::imread(filename.c_str(),0);
 	gimgl = ~cimgl;
@@ -30,7 +38,8 @@ int main(){
 	cv::imshow("cimgl",cimgl);
 	cv::imshow("output",output_image);
 
-	//imwrite("./output2.bmp",cimgl);
+	imwrite("./earth-gray.jpg",cimgl);
+	imwrite("./mearth-gray.jpg",gimgl);
 	
 	std::cout << "finish" << std::endl;
 
