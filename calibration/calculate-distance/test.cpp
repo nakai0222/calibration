@@ -20,7 +20,7 @@
 cv::vector<cv::Point2d> DetectBrightLine(cv::Mat image);
 
 int main( int argc, char* argv[])
-{
+
 
 	//load the raw and lazer image 
 	cv::vector<cv::Mat> lazer_image;
@@ -39,7 +39,7 @@ int main( int argc, char* argv[])
 		//load images
 		std::stringstream ss;
 		std::string image_name;
-		ss <<   "1_.png";
+		ss <<   "4_.png";
 		//ss <<  i << "_.png";
 		image_name = ss.str();	
 		cv::Mat image = cv::imread(image_name.c_str(),0);
