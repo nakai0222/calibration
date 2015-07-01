@@ -63,15 +63,13 @@ int main( int argc, char* argv[])
 	HandleResult(stat,"xiOpenDevice");
 
 
-	// Setting "exposure" parameter (10ms)
+	// Setting "exposure" parameter (us order)
 	int time_us = 1000;
 	stat = xiSetParam(xiH, XI_PRM_EXPOSURE, &time_us, sizeof(time_us), xiTypeInteger);
 
 	// Start acquisition
 	stat = xiStartAcquisition(xiH);
 
-	//load the raw and lazer image 
-	cv::Mat lazer_image;
 
 	/*load inside and outside parameter at camera*/
 	cv::Mat I_Mat ; 
@@ -98,6 +96,7 @@ int main( int argc, char* argv[])
 	//calculate location information
 	cv::vector<cv::Point3f> location_inf;
 
+
 	double l = plane_d/plane_a;
 	double sita = std::atan(-plane_c/plane_a);
 	double fai = std::atan(-plane_b/plane_a);
@@ -122,26 +121,33 @@ int main( int argc, char* argv[])
 		cv::imshow("frame", lazer_image);
 
 		//calculate
-		cv::vector<cv::Point2d> lazer_points= DetectBrightLine(lazer_image[0]);
+		cv::vector<cv::Point2d> lazer_points= DetectBrightLine(lazer_image);
 
 		for(int i=0;i<lazer_points.size();i++){
-			double location_z = ( l /( (-plane_c/plane_a) - ( ((lazer_points[i].x - u0) - (ganma/beta ) * (lazer_points[i].y - v0) ) / alfa ) - ((plane_b/plane_a)*(lazer_points[i].y - v0))/(beta) ) );
-			//location_inf.z = ( l / (std::tan(sita) - ( ((lazer_points[i].x - u0) - (ganma/beta    ) * (lazer_points[i].y - v0) ) / alfa ) + std::tan(fai)*(lazer_points[i].y - v0)/beta ) );
 
-			double location_x = ( ( (lazer_points[i].x - u0) - (ganma/beta)*(lazer_points[i].y - v0) ) / alfa )*location_z;
-			//location_inf.x = ( ( (lazer_points[i].x - u0) - (ganma/beta)*(lazer_points[i].y - v0) ) / alfa )*location_inf.z;
+		double location_z = ( l /( (-plane_c/plane_a) - ( ((lazer_points[i].x - u0) - (ganma/beta ) * (lazer_points[i].y - v0) ) / alfa ) - ((plane_b/plane_a)*(lazer_points[i].y - v0))/(beta) ) );
+		//location_inf.z = ( l / (std::tan(sita) - ( ((lazer_points[i].x - u0) - (ganma/beta    ) * (lazer_points[i].y - v0) ) / alfa ) + std::tan(fai)*(lazer_points[i].y - v0)/beta ) );
 
-			double location_y = ( (lazer_points[i].y - v0) /beta) * location_z;
-			//location_inf.y = ( (lazer_points[i].y - v0) /beta) * location_inf.z;
+		double location_x = ( ( (lazer_points[i].x - u0) - (ganma/beta)*(lazer_points[i].y - v0) ) / alfa )*location_z;
+		//location_inf.x = ( ( (lazer_points[i].x - u0) - (ganma/beta)*(lazer_points[i].y - v0) ) / alfa )*location_inf.z;
 
-			location_inf.push_back(cv::Point3f(location_x,location_y,location_z) );
-		}
+		double location_y = ( (lazer_points[i].y - v0) /beta) * location_z;
+		//location_inf.y = ( (lazer_points[i].y - v0) /beta) * location_inf.z;
+
+		location_inf.push_back(cv::Point3f(location_x,location_y,location_z) );
+
+
+	}
 		std::cout << "location : " << location_inf << std::endl;
 		cv::waitKey(1);
 	}
 
 	return 0;
 }
+
+
+
+
 
 cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 {
@@ -158,7 +164,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 	cv::vector<cv::Point2d> lazer_line;
 
 
-
+	
 	for(int j=0;j<image.step;j++){
 		int edge = 0;
 		int pos = 0;
@@ -172,7 +178,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 
 		if(pos_edge > 0){
 			pos_edge = pos_edge/pos;
-
+			
 			std::cout << j  << " edge " << pos_edge << std::endl;	
 			lazer_line.push_back( cv::Point2d(j,pos_edge) );
 			//lazer_line.push_back( cv::Point2d(j,pos_edge) );
@@ -180,7 +186,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 		//else
 		//lazer_line.push_back( cv::Point2d(0,j) );
 	}	
-
+	
 	for(int i=0;i<image.rows;i++)	
 		for(int j=0;j<image.cols;j++)	
 			image.data[i*image.step + j] = 0;
@@ -196,7 +202,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 	cv::namedWindow("R3");
 	imshow("R3",image);
 	//imwrite("./output.bmp",image);
-	cv::waitKey(0);
+
 	return lazer_line;
 }
 
