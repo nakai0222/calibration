@@ -47,7 +47,6 @@ int main( int argc, char* argv[])
 	}
 
 
-
 	//find checker patter
 	for(int i=0;i<IMAGE_SIZE;i++)
 	{
