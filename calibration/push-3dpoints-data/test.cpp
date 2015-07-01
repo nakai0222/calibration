@@ -19,7 +19,7 @@
 
 cv::vector<cv::Point2d> DetectBrightLine(cv::Mat image);
 
-int main( int argc, char* argv[])
+int main( int argc, char* argv[]){
 
 
 	//load the raw and lazer image 
@@ -73,7 +73,7 @@ int main( int argc, char* argv[])
 	cv::vector<cv::Point2d> lazer_points= DetectBrightLine(lazer_image[0]);
 
 	//calculate location information
-	cv::vector<cv::Point3f> location_inf;
+	cv::vector<cv::Point3d> location_inf;
 
 	double l = plane_d/plane_a;
 	double sita = std::atan(-plane_c/plane_a);
@@ -103,10 +103,24 @@ int main( int argc, char* argv[])
 	}
 
 	std::cout << "location : " << location_inf << std::endl;
+	std::cout << "location size : " << location_inf.size() << std::endl;
 
 	
-	
+	cv::FileStorage output("distance.xml",cv::FileStorage::WRITE);
+	output << "datasize" << (int)location_inf.size(); 
 
+
+
+	output << "data" << "[";
+	for(int i=0;i<location_inf.size();i++){
+	output << "["; 
+	output << location_inf[i].x; 
+	output << location_inf[i].y; 
+	output << location_inf[i].z; 
+	output << "]"; 
+	//output << "data "<< location_inf[0];
+	} 
+	output << "]";	
 	return 0;
 }
 
@@ -164,7 +178,6 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 	cv::namedWindow("R3");
 	imshow("R3",image);
 	//imwrite("./output.bmp",image);
-
 	return lazer_line;
 }
 
