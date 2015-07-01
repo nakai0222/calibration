@@ -113,11 +113,13 @@ int main( int argc, char* argv[]){
 
 	output << "data" << "[";
 	for(int i=0;i<location_inf.size();i++){
-	output << "["; 
-	output << location_inf[i].x; 
-	output << location_inf[i].y; 
-	output << location_inf[i].z; 
-	output << "]"; 
+	output << "{:"; 
+	//output << "[:"; 
+	output << "x" << location_inf[i].x; 
+	output <<"y" << location_inf[i].y; 
+	output <<"z" << location_inf[i].z; 
+	//output << "]"; 
+	output << "}"; 
 	//output << "data "<< location_inf[0];
 	} 
 	output << "]";	
