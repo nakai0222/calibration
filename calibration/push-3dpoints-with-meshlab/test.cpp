@@ -1,20 +1,3 @@
-
-#ifndef DEBUG
-#pragma comment(lib, "opencv_core249d.lib")
-#pragma comment(lib, "opencv_highgui249d.lib")
-#pragma comment(lib, "opencv_imgproc249d.lib")
-#pragma comment(lib, "opencv_calib3d249d.lib")
-
-
-#else
-#pragma comment(lib, "opencv_core249.lib")
-#pragma comment(lib, "opencv_highgui249.lib")
-#pragma comment(lib, "opencv_imgproc249.lib")
-#pragma comment(lib, "opencv_calib3d249.lib")
-#endif
-
-
-#include <ximea/xiApi.h>
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
@@ -24,78 +7,73 @@
 #include <string>
 #include <cmath>
 
-#define HandleResult(res,place) if (res!=XI_OK) {printf("Error after %s (%d)",place,res);}
-
-
+#define IMAGE_SIZE 2
 #define CHESS_SIZE 21
 #define CHESS_ROW 9
 #define CHESS_COLUM 6
 
+#define PIXEL_INTERVAL 1
 #define XI_W 648
 #define XI_H 488
 
-#define PIXEL_INTERVAL 1
 
 cv::vector<cv::Point2d> DetectBrightLine(cv::Mat image);
 
-cv::vector<cv::Point3d> CalcDistInf(cv::Mat lazer_image,Plane plane,cv::Mat I_Mat,cv::Mat D_Mat);
+int main( int argc, char* argv[]){
 
 
-int main( int argc, char* argv[])
-{
-
-	// Sample for XIMEA API V2.10
-	DWORD dwNumberOfDevices = 0;
-	HANDLE xiH = NULL;
-	XI_RETURN stat = XI_OK;
-
-	// image buffer
-	XI_IMG image;
-	memset(&image,0,sizeof(image));
-	image.size = sizeof(XI_IMG);
-
-	// Retrieving number of connected cameras
-	stat = xiGetNumberDevices(&dwNumberOfDevices);
-	if(!dwNumberOfDevices) { std::cout << "error!! camera was not connected." << std::endl; }
-
-	// Retrieving a handle to the camera device 
-	stat = xiOpenDevice(0, &xiH);
-	HandleResult(stat,"xiOpenDevice");
-
-
-	// Setting "exposure" parameter (us order)
-	int time_us = 1000;
-	stat = xiSetParam(xiH, XI_PRM_EXPOSURE, &time_us, sizeof(time_us), xiTypeInteger);
-
-	// Start acquisition
-	stat = xiStartAcquisition(xiH);
-
-
+	//load the raw and lazer image 
+	cv::vector<cv::Mat> lazer_image;
 	/*load inside and outside parameter at camera*/
 	cv::Mat I_Mat ; 
 	cv::Mat D_Mat ;
 	cv::FileStorage fs("camera.xml",CV_STORAGE_READ);
+	//cv::FileStorage fs("camera.xml",cv::FileStorage::READ);
 
 	fs["intrinsicMat"] >> I_Mat;
 	fs["distCoeffs"] >> D_Mat;
 
+	for(int i=0;i<IMAGE_SIZE;i++)
+	{
+
+		//load images
+		std::stringstream ss;
+		std::string image_name;
+		ss <<   "4_.png";
+		//ss <<  i << "_.png";
+		image_name = ss.str();	
+		cv::Mat image = cv::imread(image_name.c_str(),0);
+		cv::Mat undistort;
+		cv::undistort(image,undistort,I_Mat,D_Mat);
+
+		lazer_image.push_back( undistort );
+	}
+
+	cv::imshow("lazer",lazer_image[0]);
+	cv::waitKey(0);
 	/*load projector parameter */
-	Plane plane;
+	double plane_a;
+	double plane_b;	
+	double plane_c;	
+	double plane_d;	
 
 	cv::FileStorage fs_projector("projector.xml",CV_STORAGE_READ);
 
-	fs_projector["plane_a"] >>plane.a; 
-	fs_projector["plane_b"] >>plane.b; 
-	fs_projector["plane_c"] >>plane.c; 
-	fs_projector["plane_d"] >>plane.d; 
-	std::cout << "plane.a : " << plane.a<< std::endl;
-	std::cout << "plane.b : " << plane.b<< std::endl;
-	std::cout << "plane.c : " << plane.c<< std::endl;
-	std::cout << "plane.d : " << plane.d<< std::endl;
+	fs_projector["plane_a"] >>plane_a; 
+	fs_projector["plane_b"] >>plane_b; 
+	fs_projector["plane_c"] >>plane_c; 
+	fs_projector["plane_d"] >>plane_d; 
+	std::cout << "plane_a : " << plane_a<< std::endl;
+	std::cout << "plane_b : " << plane_b<< std::endl;
+	std::cout << "plane_c : " << plane_c<< std::endl;
+	std::cout << "plane_d : " << plane_d<< std::endl;
+
+
+	//calculate lazer points
+	cv::vector<cv::Point2d> lazer_points= DetectBrightLine(lazer_image[0]);
 
 	//calculate location information
-	cv::vector<cv::Point3f> location_inf;
-
+	cv::vector<cv::Point3d> location_inf;
 
 	double l = plane_d/plane_a;
 	double sita = std::atan(-plane_c/plane_a);
@@ -108,22 +86,7 @@ int main( int argc, char* argv[])
 	double v0 = I_Mat.at<double>(1,2);
 
 
-
-	while(1){
-
-		// getting image from the camera
-		cv::Mat lazer_image = cv::Mat::zeros(XI_H, XI_W, CV_8UC1);
-
-		stat = xiGetImage(xiH, time_us , &image);
-
-		memcpy(lazer_image.data, image.bp, image.width*image.height);
-
-		cv::imshow("frame", lazer_image);
-
-		//calculate
-		cv::vector<cv::Point2d> lazer_points= DetectBrightLine(lazer_image);
-
-		for(int i=0;i<lazer_points.size();i++){
+	for(int i=0;i<lazer_points.size();i++){
 
 		double location_z = ( l /( (-plane_c/plane_a) - ( ((lazer_points[i].x - u0) - (ganma/beta ) * (lazer_points[i].y - v0) ) / alfa ) - ((plane_b/plane_a)*(lazer_points[i].y - v0))/(beta) ) );
 		//location_inf.z = ( l / (std::tan(sita) - ( ((lazer_points[i].x - u0) - (ganma/beta    ) * (lazer_points[i].y - v0) ) / alfa ) + std::tan(fai)*(lazer_points[i].y - v0)/beta ) );
@@ -138,15 +101,43 @@ int main( int argc, char* argv[])
 
 
 	}
-		//std::cout << "location : " << location_inf << std::endl;
-		//cv::waitKey(1);
-	}
+
+	std::cout << "location : " << location_inf << std::endl;
+	std::cout << "location size : " << location_inf.size() << std::endl;
+
+
+
+	// ファイル出力ストリームの初期化
+	std::ofstream ofs("./distance.asc");
+
+	//for(int i=0;i<=location_inf.size();i++){
+		// ファイルに1行ずつ書き込み
+		ofs << location_inf << std::endl;
+	//}
+
+	ofs.close();
+	/*		
+	cv::FileStorage output("distance.asc",cv::FileStorage::WRITE);
+	//output << "datasize" << (int)location_inf.size(); 
+	output << "data" << "[";
+	for(int i=0;i<location_inf.size();i++){
+	//output << "{:"; 
+	output << "[:"; 
+	//output << "x" << location_inf[i].x; 
+	output <<  location_inf[i].x; 
+	//output <<"y" << location_inf[i].y; 
+	output << location_inf[i].y; 
+	//output <<"z" << location_inf[i].z; 
+	output << location_inf[i].z; 
+	output << "]"; 
+	//output << "}"; 
+	//output << "data "<< location_inf[0];
+	} 
+	output << "]";	
+	 */
 
 	return 0;
 }
-
-
-
 
 
 cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
@@ -164,7 +155,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 	cv::vector<cv::Point2d> lazer_line;
 
 
-	
+
 	for(int j=0;j<image.step;j++){
 		int edge = 0;
 		int pos = 0;
@@ -178,20 +169,20 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 
 		if(pos_edge > 0){
 			pos_edge = pos_edge/pos;
-			
-			std::cout << j  << " edge " << pos_edge << std::endl;	
+
+			//std::cout << j  << " edge " << pos_edge << std::endl;	
 			lazer_line.push_back( cv::Point2d(j,pos_edge) );
 			//lazer_line.push_back( cv::Point2d(j,pos_edge) );
 		}
 		//else
 		//lazer_line.push_back( cv::Point2d(0,j) );
 	}	
-	
+
 	for(int i=0;i<image.rows;i++)	
 		for(int j=0;j<image.cols;j++)	
 			image.data[i*image.step + j] = 0;
 
-	std::cout << " lazer_line size : " << lazer_line.size() << std::endl;
+	//std::cout << " lazer_line size : " << lazer_line.size() << std::endl;
 
 	for(int i = 0 ; i < lazer_line.size(); i++)
 	{
@@ -202,12 +193,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 	cv::namedWindow("R3");
 	imshow("R3",image);
 	//imwrite("./output.bmp",image);
-
 	return lazer_line;
 }
-
-
-
-
 
 

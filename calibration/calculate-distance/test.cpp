@@ -19,7 +19,7 @@
 
 cv::vector<cv::Point2d> DetectBrightLine(cv::Mat image);
 
-int main( int argc, char* argv[])
+int main( int argc, char* argv[]){
 
 
 	//load the raw and lazer image 
@@ -67,7 +67,6 @@ int main( int argc, char* argv[])
 	std::cout << "plane_b : " << plane_b<< std::endl;
 	std::cout << "plane_c : " << plane_c<< std::endl;
 	std::cout << "plane_d : " << plane_d<< std::endl;
-
 
 	//calculate lazer points
 	cv::vector<cv::Point2d> lazer_points= DetectBrightLine(lazer_image[0]);
@@ -161,7 +160,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 	cv::namedWindow("R3");
 	imshow("R3",image);
 	//imwrite("./output.bmp",image);
-
+	cv::waitKey(0);
 	return lazer_line;
 }
 

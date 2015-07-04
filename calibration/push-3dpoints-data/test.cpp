@@ -105,24 +105,28 @@ int main( int argc, char* argv[]){
 	std::cout << "location : " << location_inf << std::endl;
 	std::cout << "location size : " << location_inf.size() << std::endl;
 
-	
+
+
+			
 	cv::FileStorage output("distance.xml",cv::FileStorage::WRITE);
-	output << "datasize" << (int)location_inf.size(); 
-
-
-
+	//output << "datasize" << (int)location_inf.size(); 
 	output << "data" << "[";
 	for(int i=0;i<location_inf.size();i++){
-	output << "{:"; 
-	//output << "[:"; 
+	//output << "{:"; 
+	output << "[:"; 
 	output << "x" << location_inf[i].x; 
+	//output <<  location_inf[i].x; 
 	output <<"y" << location_inf[i].y; 
+	//output << location_inf[i].y; 
 	output <<"z" << location_inf[i].z; 
-	//output << "]"; 
-	output << "}"; 
+	//output << location_inf[i].z; 
+	output << "]"; 
+	//output << "}"; 
 	//output << "data "<< location_inf[0];
 	} 
 	output << "]";	
+	 
+
 	return 0;
 }
 
@@ -142,7 +146,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 	cv::vector<cv::Point2d> lazer_line;
 
 
-	
+
 	for(int j=0;j<image.step;j++){
 		int edge = 0;
 		int pos = 0;
@@ -156,7 +160,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 
 		if(pos_edge > 0){
 			pos_edge = pos_edge/pos;
-			
+
 			//std::cout << j  << " edge " << pos_edge << std::endl;	
 			lazer_line.push_back( cv::Point2d(j,pos_edge) );
 			//lazer_line.push_back( cv::Point2d(j,pos_edge) );
@@ -164,7 +168,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 		//else
 		//lazer_line.push_back( cv::Point2d(0,j) );
 	}	
-	
+
 	for(int i=0;i<image.rows;i++)	
 		for(int j=0;j<image.cols;j++)	
 			image.data[i*image.step + j] = 0;
