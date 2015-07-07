@@ -4,135 +4,85 @@
 
 int main(int argc, char *argv[])
 {
+	
 
+	#define IMAGESIZE 1 
 
 	//点群データ読み込み：ベクトル
-	cv::FileStorage fs_3d_data("3d-data.xml",CV_STORAGE_READ);
+	cv::FileStorage fs_3d_data("distance.xml",CV_STORAGE_READ);
+
+	cv::vector<cv::Point3d> image_points_data;
+
+	int points_size;
+	fs_3d_data["datasize"] >> points_size; 
+	std::cout << "ok " << std::endl;
+	
+	cv::FileNode data_file = fs_3d_data["data"];
+	cv::FileNodeIterator it = data_file.begin(), it_end = data_file.end();
 
 
-	static int imageSize;
-	fs_3d_data["image_size"] >>image_size; 
-	3dPoints 3d_points[image_size];
+	points_size = 300;	
+	int idx = 0;
+	//std::vector<uchar> lbpval;
+
+		std::cout <<  static_cast<double>(data_file[0]["x"]) << std::endl;
+		std::cout <<  static_cast<double>(data_file[1]["x"]) << std::endl;
+	for(int i=0;i<IMAGESIZE;i++){
+
+		//for(; it!= it_end; ++it,idx++){
+		//(*it)["data"] >>image_points_data;
+		//}
+		double x,y,z;
+		for(int j=0;j<points_size;j++){
+		x = static_cast<double>(data_file[j]["x"]);
+		//image_points_data[j].x = static_cast<double>(data_file[j]["x"]);
+		y = static_cast<double>(data_file[j]["y"]);
+		//image_points_data[j].y = static_cast<double>(data_file[j]["y"]);
+		z = static_cast<double>(data_file[j]["z"]);
+		//image_points_data[j].z = static_cast<double>(data_file[j]["z"]);
+	
+		image_points_data.push_back(cv::Point3d(x,y,z));
+
+	
+		//image_points_data[i].y = (double)(*it)["y"];
+		//image_points_data[i].z = (double)(*it)["z"];
+		//std::cout << "x=" << (double)(*it)["x"] << ", y=" << (double)(*it)["y"] <<  ", z=" << (double)(*it)["z"] 
+		}
+		//fs_3d_data["data"] >> image_points_data;
+		//for(int j=0;i<image_points_data.size();j++)
+		
+		for(int i=0;i<points_size;i++){
+		std::cout << "x=" << image_points_data[i].x << ", y=" << image_points_data[i].y << ", z=" << image_points_data[i].z << std::endl;
+		}	
+		//std::cout << "data: " << image_points_data[j].x<< std::endl;
+	}
+	fs_3d_data.release();
 
 
-	for(int i=0;i<image_size;i++){
-		fs_3d_data["data"] >>3d_points; 
-		std::cout << "data: " << 3d_points[0].data[0].x<< std::endl;
-	}	
-
-	//描画関数初期化
-	GLSpace::startGL(0,&argc,argv);
 
 	//ループ
-	for(int i=0;i<image_size;i++){
+	//for(int i=0;i<IMAGESIZE;i++){
 
-		//画像変更
-		3d_points_data.pull(3d_points[i]);	
+	//画像変更
+	GLSpace::d_points_draw.pull(image_points_data);	
+
+
+	//描画関数初期化
+	GLSpace::startGL(0,argc,argv);
+
+
+	/*
+	while(1){
 		//図表示
+	
 		glutPostRedisplay(); //glutDisplayFunc()を１回実行する
 		cv::waitKey(0);
 	
 	}
-
+	*/	
 	return 0;
 }
 
 
 
 
-
-
-//これ以下をGLSpace.hに足す
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/calib3d/calib3d.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <cmath>
-//GLSpace(namespace)の中へ
-
-class 3dPointsDraw{
-
-	public:
-	cv::vector<cv::Point3d> 3d_points_data;
-	void pull(cv::vector<cv::Point3d> 3d_points);	
-	void drawPoints();
-	
-
-}3d_points_draw;
-
-
-void 3dPointsDraw::pull(cv::vector<cv::Point3d> 3d_points){
-
-	for(int i=0;i<3d_points.size();i++)
-	this->3d_points_data.push_back(3d_points[i]);
-
-	this->3d_points_data = 3d_points;
-
-}	
-
-
-
-//３次元点群描画関数
-void 3dPointsDraw::drawPoints() {
-
-	glPointSize(PLOTSIZE);
-	glBegin(GL_POINTS);
-
-
-	glColor3d(0.0,0.0,0.0);
-
-
-	glVertex3d(0.0,0.0,0.0);//原点のノイズ除去
-	for(int i=0;i<3d_points.size();i++){
-		glColor3d(1.0,1.0,0.0);
-		//hsv2rgbColor(z_global[i]);
-		hsv2rgbColor(this->3d_points_data[i].z);
-		//glVertex3d(x_global[i]/l_scale,y_global[i]/l_scale,z_global[i]/z_scale-z_slide);
-		glVertex3d(this->3d_points_data[i].x/l_scale,this->3d_points_data[i].y/l_scale,this->3d_points_data[i].z/z_scale-z_slide);
-	}
-
-
-	glEnd();
-}
-
-
-
-
-//Display置き換え
-void Display(void) {
-
-	glClearColor(0.0,0.0,0.0,0.0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //バッファの消去
-	//モデルビュー変換行列の設定--------------------------
-	glMatrixMode(GL_MODELVIEW);//行列モードの設定（GL_PROJECTION : 透視変換行列の設定、GL_MODELVIEW：モデルビュー変換行列）
-	glLoadIdentity();//行列の初期化
-	glViewport(0, 0, WindowWidth, WindowHeight);
-	//----------------------------------------------
-	glPushMatrix();
-	//視点の設定------------------------------
-	gluLookAt(
-			-100.0, 80.0, -100.0, // 視点の位置x,y,z;
-			0.0, 0.0,  camera_z_pos,   // 視界の中心位置の参照点座標x,y,z
-			0.0, 0.0, -1.0);  //視界の上方向のベクトルx,y,z
-	gluLookAt(
-			0.0, dist, 0.0, // 視点の位置x,y,z;
-			0.0, 0.0,  camera_z_pos,   // 視界の中心位置の参照点座標x,y,z
-			0.0, 0.0, -1.0);  //視界の上方向のベクトルx,y,z
-	//----------------------------------------
-	////回転///////////////////////////////////////////////
-	glMultMatrixd(rt);
-	///////////////////////////////////////////////////////
-	glPointSize(plot);
-	glBegin(GL_POINTS);
-
-
-	3d_points_draw::drawPoints(); 
-
-	
-	Ground();
-	glutSwapBuffers(); //glutInitDisplayMode(GLUT_DOUBLE)でダブルバッファリングを利用可
-
-}

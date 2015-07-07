@@ -1,10 +1,19 @@
 #pragma once
 
-#include <cmath>
+
 #include <iostream>
+#include <string>
+#include <cmath>
 //#include <GL/glut.h>
 //#include <GL/gl.h>
 #include <GL/freeglut.h> 
+
+//これ以下をGLSpace.hに足す
+#include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/calib3d/calib3d.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <fstream>
 
 
 #define PLOTSIZE (2)
@@ -18,7 +27,7 @@ namespace GLSpace {
 	//--------------------//
 	//   複数スレッド用   //
 	//--------------------//
-	#define GL_COUNT 2
+#define GL_COUNT 2
 	int WinID[GL_COUNT]; //ウィンドウID
 	const char *WindowName[]={"Window 1", "Window 2"};
 
@@ -58,6 +67,10 @@ namespace GLSpace {
 	void Display(void);
 	void Ground(void);  //大地の描画
 
+
+
+
+
 	void qmul(double r[], const double p[], const double q[]);
 	void qrot(double r[], double q[]);
 	void mouse_motion(int x, int y);
@@ -78,8 +91,60 @@ namespace GLSpace {
 	void startGL(int _LoopTime, int argc, char *argv[]);
 
 
+	//GLSpace(namespace)の中へ
 
-	
+	class DPointsDraw{
+
+		public:
+			cv::vector<cv::Point3d> data;
+			void pull(cv::vector<cv::Point3d> d_points);	
+			void drawPoints();
+
+	}d_points_draw;
+
+
+	void DPointsDraw::pull(cv::vector<cv::Point3d> d_points){
+
+
+
+		for(int i=0;i<d_points.size();i++){
+			this->data.push_back(d_points[i]);
+
+
+		}
+
+	}	
+
+
+
+	//３次元点群描画関数
+	void DPointsDraw::drawPoints() {
+
+		glPointSize(PLOTSIZE);
+		glBegin(GL_POINTS);
+
+
+		glColor3d(0.0,0.0,0.0);
+
+
+		glVertex3d(0.0,0.0,0.0);//原点のノイズ除去
+		for(int i=0;i<this->data.size();i++){
+			glColor3d(1.0,1.0,0.0);
+			//hsv2rgbColor(z_global[i]);
+			//hsv2rgbColor(this->d_points_data[i].z);
+			//glVertex3d(x_global[i]/l_scale,y_global[i]/l_scale,z_global[i]/z_scale-z_slide);
+			glVertex3d(this->data[i].x/l_scale,this->data[i].y/l_scale,this->data[i].z/z_scale-z_slide);
+		}
+
+
+		glEnd();
+
+	}
+
+
+
+
+
 
 	void timer(int value) {
 		glutPostRedisplay();
@@ -124,6 +189,8 @@ namespace GLSpace {
 	void Reshape(int _width, int _height){
 		WindowWidth = _width;    //生成するウィンドウの幅
 		WindowHeight= _height;    //生成するウィンドウの高さ
+
+		std::cout << "reshape" << std::endl;
 		Initialize();
 	}
 	//----------------------------------------------------
@@ -171,6 +238,7 @@ namespace GLSpace {
 				qrot(rt, tq);  // クォータニオンから回転の変換行列を求める
 			}
 		}
+		std::cout << "motion" << std::endl;
 	}
 	//----------------------------------------------------
 	// マウスクリック時
@@ -286,7 +354,7 @@ namespace GLSpace {
 	}
 
 	// 回転の変換行列 r <- クォータニオン q
-	static void qrot(double r[], double q[]){
+	void qrot(double r[], double q[]){
 		double x2 = q[1] * q[1] * 2.0;
 		double y2 = q[2] * q[2] * 2.0;
 		double z2 = q[3] * q[3] * 2.0;
@@ -404,7 +472,8 @@ namespace GLSpace {
 		WinID[0]=glutCreateWindow(WindowName[0]);  //ウィンドウの作成
 		glutDisplayFunc(Display); //描画時に呼び出される関数を指定する（関数名：Display）
 		glutMouseFunc(mouse_on);      //マウスクリック時に呼び出される関数
-		glutMotionFunc(mouse_motion);      //マウスドラッグ解除時に呼び出される関数
+		glutMotionFunc(motion);      //マウスドラッグ解除時に呼び出される関数
+		//glutMotionFunc(mouse_motion);      //マウスドラッグ解除時に呼び出される関数
 		glutKeyboardFunc(keyboard);
 		glutSpecialFunc(specialkeyboard);
 
@@ -446,53 +515,94 @@ namespace GLSpace {
 
 #define POINTWIDTH 18
 #define POINTHEIGHT 17
-	
+
+
+	//Display置き換え
+	/*	void Display(void) {
+
+		glClearColor(0.0,0.0,0.0,0.0);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //バッファの消去
+	//モデルビュー変換行列の設定--------------------------
+	glMatrixMode(GL_MODELVIEW);//行列モードの設定（GL_PROJECTION : 透視変換行列の設定、GL_MODELVIEW：モデルビュー変換行列）
+	glLoadIdentity();//行列の初期化
+	glViewport(0, 0, WindowWidth, WindowHeight);
+	//----------------------------------------------
+	glPushMatrix();
+	//視点の設定------------------------------
+	gluLookAt(
+	-100.0, 80.0, -100.0, // 視点の位置x,y,z;
+	0.0, 0.0,  camera_z_pos,   // 視界の中心位置の参照点座標x,y,z
+	0.0, 0.0, -1.0);  //視界の上方向のベクトルx,y,z
+	gluLookAt(
+	0.0, dist, 0.0, // 視点の位置x,y,z;
+	0.0, 0.0,  camera_z_pos,   // 視界の中心位置の参照点座標x,y,z
+	0.0, 0.0, -1.0);  //視界の上方向のベクトルx,y,z
+	//----------------------------------------
+	////回転///////////////////////////////////////////////
+	glMultMatrixd(rt);
+	///////////////////////////////////////////////////////
+	glPointSize(plot);
+	glBegin(GL_POINTS);
+
+
+	d_points_draw.drawPoints(); 
+
+	std::cout << "ground  " << std::endl;
+	Ground();
+	glPopMatrix();
+	glutSwapBuffers(); //glutInitDisplayMode(GLUT_DOUBLE)でダブルバッファリングを利用可
+
+	}
+	 */
+
+
+
 	void Display(void) {
 
+		glEnable(GL_DEPTH_TEST);
 		glClearColor(0.0,0.0,0.0,0.0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //バッファの消去
 		//モデルビュー変換行列の設定--------------------------
 		glMatrixMode(GL_MODELVIEW);//行列モードの設定（GL_PROJECTION : 透視変換行列の設定、GL_MODELVIEW：モデルビュー変換行列）
+
+
 		glLoadIdentity();//行列の初期化
-		glViewport(0, 0, WindowWidth, WindowHeight);
+		//glViewport(0, 0, WindowWidth, WindowHeight);
+		glMultMatrixd(rt);
 		//----------------------------------------------
-		glPushMatrix();
 		//視点の設定------------------------------
-		gluLookAt(
-				-100.0, 80.0, -100.0, // 視点の位置x,y,z;
-				0.0, 0.0,  camera_z_pos,   // 視界の中心位置の参照点座標x,y,z
-				0.0, 0.0, -1.0);  //視界の上方向のベクトルx,y,z
-		gluLookAt(
-				0.0, dist, 0.0, // 視点の位置x,y,z;
-				0.0, 0.0,  camera_z_pos,   // 視界の中心位置の参照点座標x,y,z
-				0.0, 0.0, -1.0);  //視界の上方向のベクトルx,y,z
+
+		
+		   gluLookAt(
+		   -100.0, 80.0, -100.0, // 視点の位置x,y,z;
+		   0.0, 0.0,  camera_z_pos,   // 視界の中心位置の参照点座標x,y,z
+		   0.0, 0.0, -1.0);  //視界の上方向のベクトルx,y,z
+
+
+		   gluLookAt(
+		   0.0, dist, 0.0, // 視点の位置x,y,z;
+		   0.0, 0.0,  camera_z_pos,   // 視界の中心位置の参照点座標x,y,z
+		   0.0, 0.0, -1.0);  //視界の上方向のベクトルx,y,z
+
+
 		//----------------------------------------
 		////回転///////////////////////////////////////////////
-		glMultMatrixd(rt);
+		
+
+
+
 		///////////////////////////////////////////////////////
 		glPointSize(plot);
 		glBegin(GL_POINTS);
-		
-	
-		/*	
-		   if(colorflag)glColor3d(0.0,0.0,0.0);
-		   else glColor3d(1.0,1.0,1.0);
-		   glVertex3d(0.0,0.0,0.0);//原点のノイズ除去
-		   for(int i=0;i<x_global.size();i++){
-		   glColor3d(1.0,1.0,0.0);
-		   hsv2rgbColor(z_global[i]);
-		   glVertex3d(x_global[i]/l_scale,y_global[i]/l_scale,z_global[i]/z_scale-z_slide);
 
-		   }
-		*/
-	
 
-			
+
 		//glEnd();
 		Ground();
 		glutSwapBuffers(); //glutInitDisplayMode(GLUT_DOUBLE)でダブルバッファリングを利用可
 
 	}
+
 	/*****************************************************
 	 *   キーボード入力
 	 ******************************************************/
@@ -546,70 +656,72 @@ namespace GLSpace {
 	/***************************************************/
 	/***************       文字表示        *************/
 	/***************************************************/
-	class GLFONT
-	{
+	/*	class GLFONT
+		{
 		public:
-			HFONT Hfont;
-			HDC Hdc;
-			GLFONT(wchar_t *fontname, int size);
-			void DrawStringW(int x,int y,int z,wchar_t *format, ...);
+	//HFONT Hfont;
+	//HDC Hdc;
+	GLFONT(wchar_t *fontname, int size);
+	void DrawStringW(int x,int y,int z,wchar_t *format, ...);
 	}*font;
 	//コンストラクタ フォント作成
 	GLFONT::GLFONT(wchar_t *fontname, int size)
 	{
-		Hfont = CreateFontW(
-				size,      //フォント高さ
-				0,       //文字幅
-				0,       //テキストの角度
-				0,       //ベースラインとｘ軸との角度
-				FW_REGULAR,     //フォントの太さ
-				FALSE,      //イタリック体
-				FALSE,      //アンダーライン
-				FALSE,      //打ち消し線
-				SHIFTJIS_CHARSET,   //文字セット
-				OUT_DEFAULT_PRECIS,   //出力精度
-				CLIP_DEFAULT_PRECIS,  //クリッピング精度
-				ANTIALIASED_QUALITY,  //出力品質
-				FIXED_PITCH | FF_MODERN, //ピッチとファミリー
-				fontname);     //書体名
+	Hfont = CreateFontW(
+	size,      //フォント高さ
+	0,       //文字幅
+	0,       //テキストの角度
+	0,       //ベースラインとｘ軸との角度
+	FW_REGULAR,     //フォントの太さ
+	FALSE,      //イタリック体
+	FALSE,      //アンダーライン
+	FALSE,      //打ち消し線
+	SHIFTJIS_CHARSET,   //文字セット
+	OUT_DEFAULT_PRECIS,   //出力精度
+	CLIP_DEFAULT_PRECIS,  //クリッピング精度
+	ANTIALIASED_QUALITY,  //出力品質
+	FIXED_PITCH | FF_MODERN, //ピッチとファミリー
+	fontname);     //書体名
 
-		Hdc = wglGetCurrentDC();
-		SelectObject(Hdc, Hfont);
+	Hdc = wglGetCurrentDC();
+	SelectObject(Hdc, Hfont);
 	}
+
 	//ワイド文字列の描画
 	void GLFONT::DrawStringW(int x,int y, int z, wchar_t *format, ...)
 	{
-		wchar_t buf[256];
-		va_list ap;
-		int Length=0;
-		int list=0;
+	wchar_t buf[256];
+	va_list ap;
+	int Length=0;
+	int list=0;
 
-		//ポインタがNULLの場合は終了
-		if ( format == NULL )
-			return;
+	//ポインタがNULLの場合は終了
+	if ( format == NULL )
+	return;
 
-		//文字列変換
-		va_start(ap, format);
-		vswprintf_s(buf, format, ap);
-		va_end(ap);
+	//文字列変換
+	va_start(ap, format);
+	vswprintf_s(buf, format, ap);
+	va_end(ap);
 
-		Length = wcslen(buf);
-		list = glGenLists(Length);
-		for( int i=0; i<Length; i++ ){
-			wglUseFontBitmapsW(Hdc, buf[i], 1, list + (DWORD)i);
-		}
-
-		//glDisable(GL_LIGHTING);
-		glRasterPos3i(x, y,z);
-		//ディスプレイリストで描画
-		for( int i=0; i<Length; i++ )
-		{
-			glCallList(list + i);
-		}
-		//glEnable(GL_LIGHTING);
-		//ディスプレイリスト破棄
-		glDeleteLists(list, Length);
-		list = 0;
-		Length = 0;
+	Length = wcslen(buf);
+	list = glGenLists(Length);
+	for( int i=0; i<Length; i++ ){
+	wglUseFontBitmapsW(Hdc, buf[i], 1, list + (DWORD)i);
 	}
+
+	//glDisable(GL_LIGHTING);
+	glRasterPos3i(x, y,z);
+	//ディスプレイリストで描画
+	for( int i=0; i<Length; i++ )
+	{
+	glCallList(list + i);
+	}
+	//glEnable(GL_LIGHTING);
+	//ディスプレイリスト破棄
+	glDeleteLists(list, Length);
+	list = 0;
+	Length = 0;
+	}
+	 */
 	};	
