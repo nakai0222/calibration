@@ -8,7 +8,7 @@
 #include <string>
 
 
-#define IMAGE_SIZE 30 
+#define IMAGE_SIZE 40 
 #define CHESS_SIZE 21
 #define CHESS_ROW 9
 #define CHESS_COLUM 6
@@ -39,7 +39,7 @@ int main( int argc, char* argv[])
 		//std::cout << "loding chessboard image..." << std::endl;
 
 		std::stringstream ss;
-		ss <<  i << ".png";
+		ss <<"./cameraPicture/" <<  i << ".png";
 
 		std::string image_name = ss.str();
 		//load gray images	
@@ -92,13 +92,15 @@ int main( int argc, char* argv[])
 	std::cout << "distort parameter : "<< std::endl;
 	std::cout << dist_coeffs << std::endl;
 
+
+	/*
 	std::cout << "outside parameter : " << std::endl <<  translation_vector[0]<< std::endl;
 	std::cout << rotation_vector[0]<< std::endl;
 	std::cout << "outside parameter : " << std::endl <<  translation_vector[1]<< std::endl;
 	std::cout << rotation_vector[1]<< std::endl;
 	std::cout << "outside parameter : " << std::endl <<  translation_vector[2]<< std::endl;
 	std::cout << rotation_vector[2]<< std::endl;
-
+	*/
 
 	//output file 
 	cv::FileStorage fs("camera.xml",cv::FileStorage::WRITE);
