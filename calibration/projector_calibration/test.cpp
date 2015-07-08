@@ -7,7 +7,8 @@
 #include <string>
 #include <cmath>
 
-#define IMAGE_SIZE 5
+//#define IMAGE_SIZE 3 
+#define IMAGE_SIZE 5 
 #define CHESS_SIZE 21
 #define CHESS_ROW 9
 #define CHESS_COLUM 6
@@ -40,12 +41,15 @@ int main( int argc, char* argv[])
 	std::cout << "inner parameter: " << I_Mat << std::endl;
 	std::cout << "distCoeffs: " << D_Mat << std::endl;
 
-	for(int i=0;i<IMAGE_SIZE;i++)
+	int start_image = 0;
+
+	for(int i=start_image;i<IMAGE_SIZE;i++)
 	{
 		//load images
 		std::stringstream ss;
 		std::string image_name;
-		ss <<  "./lazer_picture/"<<  i << ".png";
+		ss <<  "./laserPicture78/"<<  i << ".png";
+		//ss <<  "./lazer_picture/"<<  i << ".png";
 		image_name = ss.str();
 		cv::Mat image = cv::imread(image_name.c_str(),0);
 		cv::Mat undistort;
@@ -77,7 +81,7 @@ int main( int argc, char* argv[])
 	cv::vector<cv::Mat> translations;
 
 	//find checker patter
-	for(int i=0;i<IMAGE_SIZE;i++)
+	for(int i=start_image;i<IMAGE_SIZE;i++)
 	{
 		//find corner
 		if(cv::findChessboardCorners (checker_image[i], checker_pattern_size, image_points[i] , cv::CALIB_CB_ADAPTIVE_THRESH + cv::CALIB_CB_NORMALIZE_IMAGE + cv::CALIB_CB_FAST_CHECK ) )
@@ -99,7 +103,7 @@ int main( int argc, char* argv[])
 	}
 
 	//registrate world points
-	for(int i=0;i<IMAGE_SIZE;i++){
+	for(int i=start_image;i<IMAGE_SIZE;i++){
 		for(int j=0;j<checker_pattern_size.area();j++){
 
 			world_points[i].push_back(cv::Point3f( static_cast<float>( j%checker_pattern_size.width*CHESS_SIZE),static_cast<float>(j /checker_pattern_size.width *CHESS_SIZE ), 0.0) ) ;
@@ -107,7 +111,7 @@ int main( int argc, char* argv[])
 	}
 
 	//calculate outside parameter
-	for(int i=0;i<IMAGE_SIZE;i++){
+	for(int i=start_image;i<IMAGE_SIZE;i++){
 		cv::Mat tmp_rotation;
 		cv::Mat tmp_translation;
 		cv::Mat dammy;
@@ -120,7 +124,7 @@ int main( int argc, char* argv[])
 
 	cv::vector<cv::Mat> rotations_mat(IMAGE_SIZE);
 
-	for(int i=0;i<IMAGE_SIZE;i++){
+	for(int i=start_image;i<IMAGE_SIZE;i++){
 		cv::Rodrigues(rotations[i],rotations_mat[i]);
 	std::cout << "translation : " <<  translations[i]<< std::endl;
 	std::cout << "rotation_mat: " <<  rotations_mat[i]<< std::endl;
@@ -128,7 +132,7 @@ int main( int argc, char* argv[])
 	cv::vector <cv::Point3f> camera_points;
 	
 
-	for(int i=0;i<IMAGE_SIZE;i++){
+	for(int i=start_image;i<IMAGE_SIZE;i++){
 
 		cv::Mat r0 = rotations_mat[i].col(0);	
 		cv::Mat r1 = rotations_mat[i].col(1);	
