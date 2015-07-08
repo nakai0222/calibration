@@ -39,7 +39,7 @@ int main( int argc, char* argv[]){
 		//load images
 		std::stringstream ss;
 		std::string image_name;
-		ss <<   "0.png";
+		ss <<   "0_.png";
 		//ss <<  i << "_.png";
 		image_name = ss.str();	
 		cv::Mat image = cv::imread(image_name.c_str(),0);
@@ -68,12 +68,11 @@ int main( int argc, char* argv[]){
 	std::cout << "plane_c : " << plane_c<< std::endl;
 	std::cout << "plane_d : " << plane_d<< std::endl;
 
-
 	//calculate lazer points
 	cv::vector<cv::Point2d> lazer_points= DetectBrightLine(lazer_image[0]);
 
 	//calculate location information
-	cv::vector<cv::Point3d> location_inf;
+	cv::vector<cv::Point3f> location_inf;
 
 	double l = plane_d/plane_a;
 	double sita = std::atan(-plane_c/plane_a);
@@ -103,38 +102,6 @@ int main( int argc, char* argv[]){
 	}
 
 	std::cout << "location : " << location_inf << std::endl;
-	std::cout << "location size : " << location_inf.size() << std::endl;
-
-
-
-	// ファイル出力ストリームの初期化
-	std::ofstream ofs("./distance.asc");
-
-	//for(int i=0;i<=location_inf.size();i++){
-		// ファイルに1行ずつ書き込み
-		ofs << location_inf << std::endl;
-	//}
-
-	ofs.close();
-	/*		
-	cv::FileStorage output("distance.asc",cv::FileStorage::WRITE);
-	//output << "datasize" << (int)location_inf.size(); 
-	output << "data" << "[";
-	for(int i=0;i<location_inf.size();i++){
-	//output << "{:"; 
-	output << "[:"; 
-	//output << "x" << location_inf[i].x; 
-	output <<  location_inf[i].x; 
-	//output <<"y" << location_inf[i].y; 
-	output << location_inf[i].y; 
-	//output <<"z" << location_inf[i].z; 
-	output << location_inf[i].z; 
-	output << "]"; 
-	//output << "}"; 
-	//output << "data "<< location_inf[0];
-	} 
-	output << "]";	
-	 */
 
 	return 0;
 }
@@ -155,14 +122,14 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 	cv::vector<cv::Point2d> lazer_line;
 
 
-		for(int i=0;i<image.rows-1;i+=PIXEL_INTERVAL){
-	
-	int edge = 0;
+	for(int i=0;i<image.rows;i+=PIXEL_INTERVAL){
+		int edge = 0;
 		int pos = 0;
 		double pos_edge = 0; 	
-	for(int j=0;j<image.step;j++){
-	
-		edge = abs(cv::saturate_cast<int>(image.data[i*image.step+j+1]) - cv::saturate_cast<int>(image.data[i*image.step+j]) ) ;
+
+		for(int j=0;j<image.step-1;j++){
+
+			edge = abs(cv::saturate_cast<int>(image.data[(i)*image.step+j+1]) - cv::saturate_cast<int>(image.data[i*image.step+j]) ) ;
 			pos_edge += edge * (j+0.5); 
 			pos += edge; 
 		}
@@ -170,7 +137,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 		if(pos_edge > 0){
 			pos_edge = pos_edge/pos;
 
-			//std::cout << j  << " edge " << pos_edge << std::endl;	
+			std::cout << i  << " edge " << pos_edge << std::endl;	
 			lazer_line.push_back( cv::Point2d(pos_edge,i) );
 			//lazer_line.push_back( cv::Point2d(j,pos_edge) );
 		}
@@ -182,7 +149,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 		for(int j=0;j<image.cols;j++)	
 			image.data[i*image.step + j] = 0;
 
-	//std::cout << " lazer_line size : " << lazer_line.size() << std::endl;
+	std::cout << " lazer_line size : " << lazer_line.size() << std::endl;
 
 	for(int i = 0 ; i < lazer_line.size(); i++)
 	{
@@ -192,8 +159,8 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 
 	cv::namedWindow("R3");
 	imshow("R3",image);
-	cv::waitKey(0);
 	//imwrite("./output.bmp",image);
+	cv::waitKey(0);
 	return lazer_line;
 }
 
