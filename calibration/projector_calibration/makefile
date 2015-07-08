@@ -1,3 +1,3 @@
 test: test.cpp
-	clang++ test.cpp -o videocapture `pkg-config --cflags --libs opencv`
+	clang++ test2.cpp -o videocapture `pkg-config --cflags --libs opencv`
 

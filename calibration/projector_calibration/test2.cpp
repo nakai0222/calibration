@@ -8,7 +8,7 @@
 #include <cmath>
 
 //#define IMAGE_SIZE 3 
-#define IMAGE_SIZE 3 
+#define IMAGE_SIZE 5 
 #define CHESS_SIZE 21
 #define CHESS_ROW 9
 #define CHESS_COLUM 6
@@ -48,8 +48,8 @@ int main( int argc, char* argv[])
 		//load images
 		std::stringstream ss;
 		std::string image_name;
-		//ss <<  "./laserPicture78/"<<  i << ".png";
-		ss <<  "./lazer_picture/"<<  i << ".png";
+		ss <<  "./laserPicture78/"<<  i << ".png";
+		//ss <<  "./lazer_picture/"<<  i << ".png";
 		image_name = ss.str();
 		cv::Mat image = cv::imread(image_name.c_str(),0);
 		cv::Mat undistort;
@@ -57,6 +57,15 @@ int main( int argc, char* argv[])
 		checker_image.push_back(undistort);
 		//checker_image.push_back(cv::imread(image_name.c_str(),0));
 
+		std::stringstream ss1;
+		std::string image_name1;
+		ss1  <<  "./laserPicture78/"<< i << "_.png";
+		image_name1 = ss1.str();
+		cv::Mat image_l =  cv::imread(image_name1.c_str(),0);	
+		cv::Mat undistort_l;
+		cv::undistort(image_l,undistort_l,I_Mat,D_Mat);			
+		checker_image_lazer.push_back(undistort_l);
+		//checker_image.push_back(cv::imread(image_name1.c_str(),0));
 	}
 
 	//number of intersection point 
@@ -70,9 +79,6 @@ int main( int argc, char* argv[])
 
 	cv::vector<cv::Mat> rotations;
 	cv::vector<cv::Mat> translations;
-
-
-
 
 	//find checker patter
 	for(int i=start_image;i<IMAGE_SIZE;i++)
@@ -124,10 +130,8 @@ int main( int argc, char* argv[])
 	std::cout << "rotation_mat: " <<  rotations_mat[i]<< std::endl;
 	}
 	cv::vector <cv::Point3f> camera_points;
-
-
-
 	
+
 	for(int i=start_image;i<IMAGE_SIZE;i++){
 
 		cv::Mat r0 = rotations_mat[i].col(0);	
@@ -144,11 +148,9 @@ int main( int argc, char* argv[])
 		cv::Mat q_inv = q.inv();	
 		cv::Mat I_Mat_inv = I_Mat.inv();
 
-std::cout << "ok" << std::endl;
 		//calculate lazer points
 		cv::vector<cv::Point2d> lazer_points = DetectBrightLine(checker_image_lazer[i]);
 
-std::cout << "ok" << std::endl;
 		for(int j=0;j<lazer_points.size();j++){	
 
 			cv::Mat lazer_point = (cv::Mat_<double>(3,1) << lazer_points[j].x , lazer_points[j].y,1);
@@ -168,11 +170,7 @@ std::cout << "ok" << std::endl;
 
 			camera_points.push_back( cv::Point3f(camera_point.at<double>(0,0),camera_point.at<double>(1,0),camera_point.at<double>(2,0) ));	
 		}
-
 	}
-
-
-
 
 	//calculate plane parameter
 	double x_sum = 0;
@@ -227,7 +225,6 @@ std::cout << "ok" << std::endl;
 	double plane_b = -projector_parametter.at<double>(1,0)*plane_c;
 	double plane_d = -projector_parametter.at<double>(2,0)*plane_c;
 
-
 	
 	/*	
 	double plane_a = projector_parametter.at<double>(1,0);
@@ -236,11 +233,13 @@ std::cout << "ok" << std::endl;
 	double plane_d = projector_parametter.at<double>(0,0);
 		
 	*/
+	
 		
 	std::cout << "plane_a : " << plane_a << std::endl;
 	std::cout << "plane_b : " << plane_b << std::endl;
 	std::cout << "plane_c : " << plane_c << std::endl;
 	std::cout << "plane_d : " << plane_d << std::endl;
+
 
 	//output file 
 	cv::FileStorage fs_projector("projector.xml",cv::FileStorage::WRITE);
@@ -251,8 +250,8 @@ std::cout << "ok" << std::endl;
 	//fs_projector << "plane_d" << projector_parameter.data[3]; 
 
 	return 0;
-}
 
+}
 
 
 
@@ -286,15 +285,16 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 		if(pos_edge > 0){
 			pos_edge = pos_edge/pos;
 			
-			std::cout << j  << " edge " << pos_edge << std::endl;	
+			std::cout << i  << " edge " << pos_edge << std::endl;	
 			lazer_line.push_back( cv::Point2d(pos_edge,i) );
 			//lazer_line.push_back( cv::Point2d(j,pos_edge) );
 		}
 		//else
 		//lazer_line.push_back( cv::Point2d(0,j) );
 	}	
+	
 	for(int i=0;i<image.rows;i++)	
-		for(int j=0;j<image.step;j++)	
+		for(int j=0;j<image.cols;j++)	
 			image.data[i*image.step + j] = 0;
 
 	std::cout << " lazer_line size : " << lazer_line.size() << std::endl;
@@ -309,7 +309,6 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 	imshow("R3",image);
 	//imwrite("./output.bmp",image);
 
-	std::cout << "ok" << std::endl;
 	return lazer_line;
 }
 
