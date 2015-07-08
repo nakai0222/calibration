@@ -8,7 +8,7 @@
 #include <string>
 
 
-#define IMAGE_SIZE 40 
+#define IMAGE_SIZE 50 
 #define CHESS_SIZE 21
 #define CHESS_ROW 9
 #define CHESS_COLUM 6
@@ -114,8 +114,9 @@ int main( int argc, char* argv[])
 
 	cv::undistort(checker_image[i],undistorted, camera_matrix,dist_coeffs);
 	cv::imshow("undistorted",undistorted);
-	cv::imshow("row",checker_image[i]);
-	cv::waitKey(0);	
+	//cv::imshow("row",checker_image[i]);
+	//cv::waitKey(0);	
+	cv::waitKey(50);
 
 	}
 
