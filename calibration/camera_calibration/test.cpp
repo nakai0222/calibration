@@ -7,8 +7,7 @@
 #include <iostream>
 #include <string>
 
-
-#define IMAGE_SIZE 50 
+#define IMAGE_SIZE 40 
 #define CHESS_SIZE 21
 #define CHESS_ROW 9
 #define CHESS_COLUM 6
@@ -39,7 +38,7 @@ int main( int argc, char* argv[])
 		//std::cout << "loding chessboard image..." << std::endl;
 
 		std::stringstream ss;
-		ss <<"./cameraPicture/" <<  i << ".png";
+		ss <<"./cameraPicture713/" <<  i << ".png";
 
 		std::string image_name = ss.str();
 		//load gray images	
