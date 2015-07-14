@@ -38,7 +38,7 @@ int main( int argc, char* argv[])
 		//std::cout << "loding chessboard image..." << std::endl;
 
 		std::stringstream ss;
-		ss <<"./cameraPicture713/" <<  i << ".png";
+		ss <<"./cameraPicture714/" <<  i << ".png";
 
 		std::string image_name = ss.str();
 		//load gray images	
