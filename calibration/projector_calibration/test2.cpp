@@ -8,7 +8,7 @@
 #include <cmath>
 
 //#define IMAGE_SIZE 3 
-#define IMAGE_SIZE 4 
+#define IMAGE_SIZE 6 
 #define CHESS_SIZE 21
 #define CHESS_ROW 9
 #define CHESS_COLUM 6
@@ -48,7 +48,7 @@ int main( int argc, char* argv[])
 		//load images
 		std::stringstream ss;
 		std::string image_name;
-		ss <<  "./laserPicture713/"<<  i << ".png";
+		ss <<  "./laserPicture714/"<<  i << ".png";
 		//ss <<  "./lazer_picture/"<<  i << ".png";
 		image_name = ss.str();
 		cv::Mat image = cv::imread(image_name.c_str(),0);
@@ -59,7 +59,7 @@ int main( int argc, char* argv[])
 
 		std::stringstream ss1;
 		std::string image_name1;
-		ss1  <<  "./laserPicture713/"<< i << "_.png";
+		ss1  <<  "./laserPicture714/"<< i << "_.png";
 		image_name1 = ss1.str();
 		cv::Mat image_l =  cv::imread(image_name1.c_str(),0);	
 		cv::Mat undistort_l;
@@ -271,7 +271,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 
 
 	
-	for(int i=0;i<image.rows;i+=PIXEL_INTERVAL){
+	for(int i=0;i<image.rows-100;i+=PIXEL_INTERVAL){
 		int edge = 0;
 		int pos = 0;
 		double pos_edge = 0; 	
@@ -307,6 +307,7 @@ cv::vector<cv::Point2d>DetectBrightLine(cv::Mat image)
 
 	cv::namedWindow("R3");
 	imshow("R3",image);
+	cv::waitKey(1);
 	//imwrite("./output.bmp",image);
 
 	return lazer_line;
